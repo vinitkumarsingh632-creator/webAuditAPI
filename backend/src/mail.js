@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
-dotenv.config({
-    path:'../.env.mail'
+const result = dotenv.config({
+    path:"./.env.mail"
 })
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -11,9 +11,5 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-await transporter.sendMail({
-  from: process.env.EMAIL,
-  to: "vinitkumarsingh632@gmail.com",
-  subject: "OTP Verification",
-  text: "Your OTP is 123456"
-});
+
+export default transporter

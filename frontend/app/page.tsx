@@ -6,6 +6,7 @@ export default function Page() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [response, setResponse] = useState(null)
+  const [otpError,setotpError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -46,6 +47,7 @@ export default function Page() {
             Email
             <input
               type="email"
+              placeholder='Enter Email'
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -55,11 +57,14 @@ export default function Page() {
             />
           </label>
 
-          {response && (
+          {response && (<>
             <label style={styles.label}>
-              OTP
+               {otpError?(
+                <p style={{color:'red'}}>{otpError}</p>
+               ):undefined}
               <input
                 type="number"
+                placeholder='Enter OTP'
                 name="otp"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
@@ -67,6 +72,7 @@ export default function Page() {
                 style={styles.input}
               />
             </label>
+            </>
           )}
 
           <button
