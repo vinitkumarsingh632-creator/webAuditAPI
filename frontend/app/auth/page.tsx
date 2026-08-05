@@ -5,33 +5,50 @@ import { FormEvent, useState } from 'react'
 export default function Page() {
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
-  const [response, setResponse] = useState(null)
-  const [otpError,setotpError] = useState("")
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpError, setotpError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     setIsLoading(true)
+    setotpError('')
 
     try {
-      const endpoint = otp ? '/otp' : '/'
+      const endpoint = otpSent ? '/otp' : '/'
 
-      const res = await fetch(`http://localhost:4000${endpoint}`, {
+      const res = await fetch(`http://localhost:4000/auth${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           email,
-          otp: otp || null,
+          otp,
         }),
       })
 
       const data = await res.json()
-      setResponse(data)
-    } catch (error) {
-      console.error(error)
+
+      if (!res.ok || !data.status) {
+        setotpError(data.message || 'Something went wrong.')
+        return
+      }
+      if(data.redirect) {
+        window.location.href = data.redirect 
+        return
+      }
+
+      if (!otpSent) {
+        setOtpSent(true)
+      } else {
+        alert('Login Successful')
+      }
+    } catch (err) {
+      console.error(err)
+      setotpError('Unable to connect to server.')
     } finally {
       setIsLoading(false)
     }
@@ -47,32 +64,39 @@ export default function Page() {
             Email
             <input
               type="email"
-              placeholder='Enter Email'
-              name="email"
+              placeholder="Enter Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={!!response}
+              disabled={otpSent}
               required
               style={styles.input}
             />
           </label>
 
-          {response && (<>
+          {otpSent && (
             <label style={styles.label}>
-               {otpError?(
-                <p style={{color:'red'}}>{otpError}</p>
-               ):undefined}
+              {otpError && (
+                <p
+                  style={{
+                    color: 'red',
+                    margin: 0,
+                    fontSize: '14px',
+                  }}
+                >
+                  {otpError}
+                </p>
+              )}
+
               <input
-                type="number"
-                placeholder='Enter OTP'
-                name="otp"
+                type="text"
+                inputMode="numeric"
+                placeholder="Enter OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 required
                 style={styles.input}
               />
             </label>
-            </>
           )}
 
           <button
@@ -82,7 +106,7 @@ export default function Page() {
           >
             {isLoading
               ? 'Loading...'
-              : response
+              : otpSent
               ? 'Verify OTP'
               : 'Send OTP'}
           </button>

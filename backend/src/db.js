@@ -1,9 +1,12 @@
 import mongoose from "mongoose";
-
+import dotenv from 'dotenv'
+dotenv.config({
+    path:"./.env.db"
+})
 try{
     mongoose.connection.on('connected',()=>console.log('DB Connected'))
     mongoose.connection.on('disconnected',()=>console.log('DB Disconnected'))
-    await mongoose.connect('mongodb+srv://vinitkumarsingh632_db_user:abhaysingh@restro.6kboufv.mongodb.net/otp?retryWrites=true&w=majority')
+    await mongoose.connect(process.env.DB_URI)
 }
 catch(err){
     console.log(err)
@@ -36,5 +39,5 @@ const User = new mongoose.Schema({
     
 })
 const otp = mongoose.model.otpStore || mongoose.model('otpStore',OTP)
-const user = mongoose.model.userDetail || mongoose.model('userDetail',User)
+export const user = mongoose.model.userDetail || mongoose.model('userDetail',User)
  export default otp 

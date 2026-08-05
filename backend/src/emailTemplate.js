@@ -88,7 +88,7 @@ const template = `
                             <p
                                 style="margin:40px 0 15px;font-size:18px;line-height:1.8;color:#374151;">
                                 This OTP is valid for
-                                <strong>2 minutes</strong>.
+                                <strong>4 minutes</strong>.
                             </p>
 
                             <p
