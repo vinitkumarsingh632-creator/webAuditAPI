@@ -9,6 +9,6 @@ export function Sign (email,objectID) {
     const data = jwt.sign(payload,process.env.PRIVATE)
     return data
 }
-export async function Verify (token) {
+export function Verify (token) {
     return jwt.verify(token,process.env.PRIVATE)
 }

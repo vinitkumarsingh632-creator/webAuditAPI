@@ -6,6 +6,7 @@ dotenv.config({
 try{
     mongoose.connection.on('connected',()=>console.log('DB Connected'))
     mongoose.connection.on('disconnected',()=>console.log('DB Disconnected'))
+    mongoose.connection.on('error',(err)=>console.log(err))
     await mongoose.connect(process.env.DB_URI)
 }
 catch(err){
@@ -36,6 +37,12 @@ const User = new mongoose.Schema({
         type:Date,
         default:Date.now
     },
+    History:{
+        type:Array
+    },
+    APIKey:{
+        type:String
+    }
     
 })
 const otp = mongoose.model.otpStore || mongoose.model('otpStore',OTP)

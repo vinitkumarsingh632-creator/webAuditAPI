@@ -16,7 +16,10 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.1",
     "jsonwebtoken": "^9.0.3",
+    "lighthouse": "^13.4.1",
     "mongoose": "^9.9.1",
-    "nodemailer": "^9.0.3"
+    "nodemailer": "^9.0.3",
+    "p-queue": "^9.3.3",
+    "puppeteer": "^25.5.0"
   }
 }

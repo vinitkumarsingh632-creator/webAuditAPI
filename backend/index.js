@@ -6,38 +6,94 @@ import cookieParser from "cookie-parser";
 import otp, { user } from "./src/db.js";
 import transporter from "./src/mail.js";
 import template from "./src/emailTemplate.js";
-import { Sign , Verify} from "./src/jwt.js";
-
+import { Sign, Verify } from "./src/jwt.js";
+import Lighthouse from "./src/lighthouse.js";
 
 dotenv.config({ path: ".env.server" });
 dotenv.config({ path: ".env.mail" });
 
 const app = express();
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true,
-}));
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
+app.use(cookieParser());
 
-app.use(rateLimit({
-  windowMs: 15 * 1000,
-  limit: 5,
-}));
-app.use(cookieParser())
-app.get('/',(req,res,next)=>{
-    if(!req.cookies.auth_token) return res.redirect('http://localhost:3000/auth')
-    try{
-        Verify(req.cookies.auth_token)
-        res.send('You are on right place')
+app.use(
+  rateLimit({
+    windowMs: 15 * 1000,
+    limit: 5,
+  })
+);
+
+app.get("/", (req, res) => {
+  const token = req.cookies.auth_token;
+
+  if (!token) {
+    return res.redirect("http://localhost:3000/auth");
+  }
+
+  try {
+    Verify(token);
+    return res.redirect("http://localhost:3000");
+  } catch (err) {
+    console.error(err);
+    return res.redirect("http://localhost:3000/auth");
+  }
+});
+
+app.post("/ui/analyze", async (req, res) => {
+  try {
+    const token = req.cookies.auth_token;
+
+    if (!token) {
+      return res.status(401).json({
+        status: false,
+        message: "Authentication required.",
+      });
     }
-    catch(err){
-        console.log(err)
-        return res.redirect('http://localhost:3000/auth')
+
+    const userData = Verify(token);
+
+    const lighthouseData = await Lighthouse(req.body.url);
+
+    if (lighthouseData.fetchError) {
+      return res.status(400).json(lighthouseData);
     }
-})
-app.post("/auth",async (req, res) => {
-    
+
+    if (lighthouseData.lighthouseError) {
+      return res.status(500).json(lighthouseData);
+    }
+
+    await user.findByIdAndUpdate(
+      userData.objectID,
+      {
+        $push: {
+          History: lighthouseData,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+
+    return res.status(200).json(lighthouseData);
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error.",
+    });
+  }
+});
+
+app.post("/auth", async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -50,7 +106,7 @@ app.post("/auth",async (req, res) => {
 
     const OTP = Math.floor(100000 + Math.random() * 900000);
 
-    const expires = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+    const expires = new Date(Date.now() + 5 * 60 * 1000);
 
     const html = template.replace("{{OTP}}", String(OTP));
 
@@ -78,7 +134,6 @@ app.post("/auth",async (req, res) => {
       status: true,
       message: "OTP sent successfully.",
     });
-
   } catch (err) {
     console.error(err);
 
@@ -89,11 +144,8 @@ app.post("/auth",async (req, res) => {
   }
 });
 
-
-
 app.post("/auth/otp", async (req, res) => {
   try {
-
     const { email, otp: userOTP } = req.body;
 
     if (!email || !userOTP) {
@@ -148,7 +200,7 @@ app.post("/auth/otp", async (req, res) => {
 
     res.cookie("auth_token", token, {
       httpOnly: true,
-      secure: false,     
+      secure: false,
       sameSite: "lax",
       maxAge: 20 * 24 * 60 * 60 * 1000,
     });
@@ -156,9 +208,8 @@ app.post("/auth/otp", async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "OTP verified successfully.",
-      redirect:'http://localhost:4000'
+      redirect: "http://localhost:4000",
     });
-
   } catch (err) {
     console.error(err);
 
@@ -167,11 +218,6 @@ app.post("/auth/otp", async (req, res) => {
       message: "Internal server error.",
     });
   }
-});
-
-
-app.get("/", (req, res) => {
-  res.send("Server Running");
 });
 
 app.listen(process.env.PORT, () => {
