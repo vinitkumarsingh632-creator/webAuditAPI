@@ -21,6 +21,7 @@ export default async function Lighthouse(url) {
             };
         }
     } catch (err) {
+        console.log(err)
         return {
             fetchError: true,
             message: "Invalid URL or website is unreachable."
@@ -65,7 +66,7 @@ export default async function Lighthouse(url) {
                 severity: i.guidanceLevel >= 3 ? "severe" : "medium"
             });
         }
-
+        console.log(result.lhr.audits["resource-summary"]);
         return {
             URL: url,
             Timestamp: new Date(),

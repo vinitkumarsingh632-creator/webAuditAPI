@@ -1,19 +1,29 @@
-import lighthouse from "lighthouse";
+import dns from "node:dns";
+
+dns.setDefaultResultOrder("ipv4first");
 import puppeteer from "puppeteer";
 
 const browser = await puppeteer.launch({
   headless: true,
-  args: ["--remote-debugging-port=0"]
+  args: [
+    "--remote-debugging-port=0",
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--ignore-certificate-errors",
+  ],
 });
 
-const port = Number(new URL(browser.wsEndpoint()).port);
+const page = await browser.newPage();
 
 try {
-  const result = await lighthouse("https://example.com", {
-    port,
-  });
+ const response = await page.goto("https://www.hostinger.com");;
 
-  console.log(result.lhr.categories.performance.score);
-} finally {
-  await browser.close();
+  console.log("Status:", response?.status());
+  console.log("Final URL:", page.url());
+  console.log("Title:", await page.title());
+
+} catch (err) {
+  console.error(err);
 }
+
+await browser.close();
