@@ -443,42 +443,49 @@ app.post("/auth", async (req, res) => {
       });
     }
 
-    const OTP = Math.floor(100000 + Math.random() * 900000);
+    const OTP = Math.floor(
+      100000 + Math.random() * 900000
+    );
 
-    const expires = new Date(Date.now() + 5 * 60 * 1000);
+    const expires = new Date(
+      Date.now() + 5 * 60 * 1000
+    );
 
-    console.log("1. Request received");
+    const html = template.replace(
+      "{{OTP}}",
+      String(OTP)
+    );
 
     const { data, error } = await resend.emails.send({
-  from: "WebAudit <onboarding@resend.dev>",
-  to: [email],
-  subject: "Verify Your Email - WebOrbit",
-  html,
-});
+      from: "WebAudit <onboarding@resend.dev>",
+      to: [email],
+      subject: "Verify Your Email - WebAudit",
+      html: html,
+    });
 
-if (error) {
-  console.error("EMAIL ERROR:", error);
+    if (error) {
+      console.error("RESEND ERROR:", error);
 
-  return res.status(500).json({
-    status: false,
-    message: "Failed to send OTP.",
-  });
-}
-
-    console.log("2. Email sent");
+      return res.status(500).json({
+        status: false,
+        message: "Failed to send OTP.",
+      });
+    }
 
     await otp.findOneAndUpdate(
-      { Email: email },
+      {
+        Email: email,
+      },
       {
         $set: {
           OTP,
           Expires: expires,
         },
       },
-      { upsert: true }
+      {
+        upsert: true,
+      }
     );
-
-    console.log("3. OTP saved");
 
     return res.status(200).json({
       status: true,
@@ -490,7 +497,7 @@ if (error) {
 
     return res.status(500).json({
       status: false,
-      message: "Failed to send OTP.",
+      message: "Internal server error.",
     });
   }
 });
