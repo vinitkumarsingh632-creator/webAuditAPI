@@ -109,13 +109,6 @@ export async function createAPIKey(developerId) {
   }
 );
 
-console.log("UPDATED API KEY DOCUMENT:", {
-  id: keyDocument._id,
-  developerId: keyDocument.developerId,
-  hasEncryptedKey: !!keyDocument.encryptedKey,
-  hasIv: !!keyDocument.encryptionIv,
-  hasAuthTag: !!keyDocument.encryptionAuthTag,
-});
 
   return {
     key,

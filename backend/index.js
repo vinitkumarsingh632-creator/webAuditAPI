@@ -176,20 +176,14 @@ app.post(
   developerAuth,
   async (req, res) => {
     try {
-      console.log(
-        "Creating API key for:",
-        req.developer._id
-      );
+      
 
       const result =
         await createAPIKey(
           req.developer._id
         );
 
-      console.log(
-        "API key created:",
-        result.id
-      );
+      
 
       return res.status(200).json({
         status: true,
