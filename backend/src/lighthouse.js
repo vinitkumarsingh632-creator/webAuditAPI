@@ -1,47 +1,44 @@
 import { performance } from "node:perf_hooks";
 
+const PAGE_SPEED_TIMEOUT = 120000;
+
 export default async function Lighthouse(url) {
     let response;
     let latency;
 
-   
-
     try {
         console.log("1. Starting website fetch:", url);
 
-const start = performance.now();
+        const start = performance.now();
 
-response = await fetch(url);
-
-console.log(
-  "2. Website fetch finished:",
-  ((performance.now() - start) / 1000).toFixed(2),
-  "seconds"
-);
-
+        response = await fetch(url, {
+            redirect: "follow",
+        });
 
         const end = performance.now();
 
         latency = end - start;
 
+        console.log(
+            "2. Website fetch finished:",
+            (latency / 1000).toFixed(2),
+            "seconds"
+        );
+
         if (!response.ok) {
             return {
                 fetchError: response.status,
-                message: response.statusText
+                message: response.statusText,
             };
         }
-
     } catch (err) {
         console.error("FETCH ERROR:", err);
 
         return {
             fetchError: true,
-            message: "Invalid URL or website is unreachable."
+            message: "Invalid URL or website is unreachable.",
         };
     }
-
-
-    
 
     try {
         const apiKey = process.env.PAGESPEED_API_KEY;
@@ -49,41 +46,65 @@ console.log(
         if (!apiKey) {
             return {
                 lighthouseError: true,
-                message: "PAGESPEED_API_KEY is not configured."
+                message: "PAGESPEED_API_KEY is not configured.",
             };
         }
-
 
         const params = new URLSearchParams();
 
         params.set("url", url);
-
         params.set("key", apiKey);
-
         params.set("strategy", "desktop");
 
-params.append("category", "performance");
-// params.append("category", "seo");
-// params.append("category", "accessibility");
-// params.append("category", "best-practices");
+        params.append("category", "performance");
+        params.append("category", "seo");
+        params.append("category", "accessibility");
+        params.append("category", "best-practices");
 
+        console.log("3. Starting PageSpeed");
 
-       console.log("3. Starting PageSpeed");
+        const pageSpeedStart = performance.now();
 
-const pageSpeedStart = performance.now();
+        const controller = new AbortController();
 
-const pageSpeedResponse = await fetch(
-  `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`
-);
+        const timeout = setTimeout(() => {
+            controller.abort();
+        }, PAGE_SPEED_TIMEOUT);
 
-console.log(
-  "4. PageSpeed finished:",
-  ((performance.now() - pageSpeedStart) / 1000).toFixed(2),
-  "seconds"
-);
+        let pageSpeedResponse;
 
+        try {
+            pageSpeedResponse = await fetch(
+                `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`,
+                {
+                    method: "GET",
+                    signal: controller.signal,
+                }
+            );
+        } catch (err) {
+            if (err.name === "AbortError") {
+                return {
+                    lighthouseError: true,
+                    message:
+                        "PageSpeed analysis timed out after 120 seconds.",
+                };
+            }
 
-        
+            throw err;
+        } finally {
+            clearTimeout(timeout);
+        }
+
+        const pageSpeedEnd = performance.now();
+
+        const pageSpeedTime =
+            pageSpeedEnd - pageSpeedStart;
+
+        console.log(
+            "4. PageSpeed finished:",
+            (pageSpeedTime / 1000).toFixed(2),
+            "seconds"
+        );
 
         if (!pageSpeedResponse.ok) {
             const errorText =
@@ -96,210 +117,179 @@ console.log(
 
             return {
                 lighthouseError: true,
-                message:
-                    "PageSpeed API request failed."
+                message: "PageSpeed API request failed.",
             };
         }
-
 
         const data =
             await pageSpeedResponse.json();
 
-
-        
-
         const result =
             data.lighthouseResult;
-
 
         if (!result) {
             return {
                 lighthouseError: true,
                 message:
-                    "Lighthouse result was not returned."
+                    "Lighthouse result was not returned.",
             };
         }
-
-
-       
 
         if (result.runtimeError) {
             return {
                 lighthouseError: true,
                 message:
                     result.runtimeError.message ||
-                    "Lighthouse failed to analyze the website."
+                    "Lighthouse failed to analyze the website.",
             };
         }
 
-
-        const audits = result.audits;
-
-
-       
+        const audits =
+            result.audits || {};
 
         const performanceCategory =
-            result.categories.performance;
+            result.categories?.performance;
 
+        const auditRefs =
+            performanceCategory?.auditRefs || [];
 
         const improvements =
-            performanceCategory.auditRefs
-                .map(ref => ({
-                    ...audits[ref.id],
-                    weight: ref.weight
-                }))
-                .filter(audit =>
-                    audit.score !== null &&
-                    audit.score !== undefined &&
-                    audit.score < 0.9
+            auditRefs
+                .map((ref) => {
+                    const audit =
+                        audits[ref.id];
+
+                    if (!audit) {
+                        return null;
+                    }
+
+                    return {
+                        ...audit,
+                        weight: ref.weight,
+                    };
+                })
+                .filter(
+                    (audit) =>
+                        audit &&
+                        audit.score !== null &&
+                        audit.score !== undefined &&
+                        audit.score < 0.9
                 )
                 .sort(
                     (a, b) =>
                         a.score - b.score
                 );
 
-
         const badPractices = [];
 
-
-        for (const i of improvements) {
-
-            if (!i.title) {
+        for (const audit of improvements) {
+            if (!audit.title) {
                 continue;
             }
 
-
             badPractices.push({
-                title: i.title,
-
+                title: audit.title,
                 description:
-                    i.description ||
-                    i.explanation ||
+                    audit.description ||
+                    audit.explanation ||
                     "",
-
-                score: i.score,
-
+                score: audit.score,
                 severity:
-                    i.score < 0.5
+                    audit.score < 0.5
                         ? "severe"
-                        : "medium"
+                        : "medium",
             });
         }
 
+        const clsAudit =
+            audits["cumulative-layout-shift"];
 
-        
+        const lcpAudit =
+            audits["largest-contentful-paint"];
+
+        const fcpAudit =
+            audits["first-contentful-paint"];
+
+        const speedIndexAudit =
+            audits["speed-index"];
 
         return {
-
             URL: url,
 
             Timestamp: new Date(),
 
-
             Performance: {
                 Score:
                     result.categories
-                        .performance
-                        ?.score ?? null
+                        ?.performance
+                        ?.score ?? null,
             },
-
 
             SEO: {
                 Score:
                     result.categories
-                        .seo
-                        ?.score ?? null
+                        ?.seo
+                        ?.score ?? null,
             },
-
 
             Accessibility: {
                 Score:
                     result.categories
-                        .accessibility
-                        ?.score ?? null
+                        ?.accessibility
+                        ?.score ?? null,
             },
-
 
             Best_Practices: {
                 Score:
-                    result.categories[
-                        "best-practices"
-                    ]?.score ?? null
+                    result.categories
+                        ?.["best-practices"]
+                        ?.score ?? null,
             },
-
 
             CLS: {
                 Score:
-                    audits[
-                        "cumulative-layout-shift"
-                    ]?.score ?? null,
+                    clsAudit?.score ?? null,
 
                 DisplayValue:
-                    audits[
-                        "cumulative-layout-shift"
-                    ]?.displayValue ?? null
+                    clsAudit?.displayValue ?? null,
             },
-
 
             LCP: {
                 Score:
-                    audits[
-                        "largest-contentful-paint"
-                    ]?.score ?? null,
+                    lcpAudit?.score ?? null,
 
                 DisplayValue:
-                    audits[
-                        "largest-contentful-paint"
-                    ]?.displayValue ?? null
+                    lcpAudit?.displayValue ?? null,
             },
-
 
             FCP: {
                 Score:
-                    audits[
-                        "first-contentful-paint"
-                    ]?.score ?? null,
+                    fcpAudit?.score ?? null,
 
                 DisplayValue:
-                    audits[
-                        "first-contentful-paint"
-                    ]?.displayValue ?? null
+                    fcpAudit?.displayValue ?? null,
             },
-
 
             SpeedIndex: {
                 Score:
-                    audits[
-                        "speed-index"
-                    ]?.score ?? null,
+                    speedIndexAudit?.score ?? null,
 
                 DisplayValue:
-                    audits[
-                        "speed-index"
-                    ]?.displayValue ?? null
+                    speedIndexAudit?.displayValue ?? null,
             },
 
+            StatusCode: response.status,
 
-            StatusCode:
-                response.status,
+            StatusText: response.statusText,
 
-            StatusText:
-                response.statusText,
+            Latency: latency.toFixed(2),
 
-
-            Latency:
-                latency.toFixed(2),
-
-
-            Improvements:
-                badPractices,
-
+            Improvements: badPractices,
 
             Resources:
-                audits[
-                    "resource-summary"
-                ]?.details?.items ?? [],
-
+                audits["resource-summary"]
+                    ?.details
+                    ?.items ?? [],
 
             Headers: {
                 contentType:
@@ -325,13 +315,10 @@ console.log(
                 server:
                     response.headers.get(
                         "server"
-                    )
-            }
+                    ),
+            },
         };
-
-
     } catch (err) {
-
         console.error(
             "PAGESPEED/LIGHTHOUSE ERROR:",
             err
@@ -340,7 +327,7 @@ console.log(
         return {
             lighthouseError: true,
             message:
-                "Failed to analyze the website."
+                "Failed to analyze the website.",
         };
     }
 }
