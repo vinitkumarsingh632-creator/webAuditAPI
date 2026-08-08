@@ -1,17 +1,16 @@
 import express from "express";
 import dotenv from "dotenv";
-import resend from "./src/mail.js";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { doc } from "./src/doc.js";
 import otp, { user } from "./src/db.js";
-import transporter from "./src/mail.js";
 import template from "./src/emailTemplate.js";
 import { Sign, Verify } from "./src/jwt.js";
 import Lighthouse from "./src/lighthouse.js";
 import { generateAPIKey } from "./src/apiKey.js";
 import { APIAuth } from "./src/apiAuth.js";
+import { sendOTP } from "./src/mail.js";
 
 dotenv.config()
 
@@ -440,35 +439,20 @@ app.post("/auth", async (req, res) => {
       });
     }
 
+    // Generate 6-digit OTP
     const OTP = Math.floor(
       100000 + Math.random() * 900000
     );
 
+    // OTP expires after 5 minutes
     const expires = new Date(
       Date.now() + 5 * 60 * 1000
     );
 
-    const html = template.replace(
-      "{{OTP}}",
-      String(OTP)
-    );
+    // Send OTP using Brevo
+    await sendOTP(email, OTP);
 
-    const { data, error } = await resend.emails.send({
-      from: "WebAudit <onboarding@resend.dev>",
-      to: [email],
-      subject: "Verify Your Email - WebAudit",
-      html: html,
-    });
-
-    if (error) {
-      console.error("RESEND ERROR:", error);
-
-      return res.status(500).json({
-        status: false,
-        message: "Failed to send OTP.",
-      });
-    }
-
+    // Save/update OTP in MongoDB
     await otp.findOneAndUpdate(
       {
         Email: email,
