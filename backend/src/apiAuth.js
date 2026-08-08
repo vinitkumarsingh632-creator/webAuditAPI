@@ -1,46 +1,51 @@
-import { user } from "./db.js";
+import { APIKey, hashAPIKey } from "./db.js";
 
 export async function APIAuth(req, res, next) {
   try {
-    const auth = req.headers.authorization;
+    const apiKey = req.headers["x-api-key"];
 
-    if (!auth) {
+    if (!apiKey) {
       return res.status(401).json({
         status: false,
-        message: "API key required.",
+        message: "API key is required.",
       });
     }
 
-    const [type, key] = auth.split(" ");
+    const keyHash = hashAPIKey(apiKey);
 
-    if (type !== "Bearer" || !key) {
-      return res.status(401).json({
-        status: false,
-        message: "Use Authorization: Bearer <API_KEY>",
-      });
-    }
-
-    const userData = await user.findOne({
-      APIKey: key,
+    const keyDocument = await APIKey.findOne({
+      keyHash,
+      active: true,
     });
 
-    if (!userData) {
+    if (!keyDocument) {
       return res.status(401).json({
         status: false,
         message: "Invalid API key.",
       });
     }
 
-    req.apiUser = userData;
+    await APIKey.updateOne(
+      { _id: keyDocument._id },
+      {
+        $set: {
+          lastUsedAt: new Date(),
+        },
+        $inc: {
+          requestCount: 1,
+        },
+      }
+    );
+
+    req.apiKey = keyDocument;
 
     next();
-
   } catch (err) {
     console.error(err);
 
     return res.status(500).json({
       status: false,
-      message: "Authentication error.",
+      message: "API key validation failed.",
     });
   }
 }

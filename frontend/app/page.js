@@ -23,14 +23,32 @@ export default function Home() {
 
   async function FetchData(url) {
     try {
+      const developerId =
+        localStorage.getItem("developerId");
+
+      const developerSecret =
+        localStorage.getItem("developerSecret");
+
+      // User is not authenticated
+      if (!developerId || !developerSecret) {
+        window.location.href = "/auth";
+        return;
+      }
+
       const fetchedData = await fetch(
         "https://webauditapi.onrender.com/ui/analyze",
         {
           method: "POST",
+
           headers: {
             "Content-Type": "application/json",
+            "X-Developer-ID": developerId,
+            "X-Developer-Secret": developerSecret,
           },
-          body: JSON.stringify({ url }),
+
+          body: JSON.stringify({
+            url,
+          }),
         }
       );
 
@@ -41,60 +59,100 @@ export default function Home() {
       try {
         jsonData = JSON.parse(text);
       } catch {
-        console.error("Server response:", text);
+        console.error(
+          "Server response:",
+          text
+        );
 
-        setLoading(false);
-        alert("Server returned an invalid response.");
+        alert(
+          "Server returned an invalid response."
+        );
+
         return;
       }
 
+      /*
+       * Authentication failed
+       */
+      if (
+        fetchedData.status === 401
+      ) {
+        localStorage.removeItem(
+          "developerId"
+        );
+
+        localStorage.removeItem(
+          "developerName"
+        );
+
+        localStorage.removeItem(
+          "developerSecret"
+        );
+
+        alert(
+          "Authentication failed. Please create your account again."
+        );
+
+        window.location.href = "/auth";
+
+        return;
+      }
+
+      /*
+       * Lighthouse could not fetch the website
+       */
       if (jsonData.fetchError) {
-        setLoading(false);
         alert("Invalid URL");
         return;
       }
 
+      /*
+       * Other API errors
+       */
       if (!fetchedData.ok) {
-        setLoading(false);
-
         alert(
           jsonData.message ||
             jsonData.error ||
             "Failed to analyze website"
         );
 
-        console.error("API error:", jsonData);
+        console.error(
+          "API error:",
+          jsonData
+        );
+
         return;
       }
 
-      const existingHistory = JSON.parse(
-        localStorage.getItem("auditHistory") || "[]"
-      );
-
-      const updatedHistory = [
-        jsonData,
-        ...existingHistory,
-      ];
-
-      localStorage.setItem(
-        "auditHistory",
-        JSON.stringify(updatedHistory)
-      );
+      /*
+       * Do NOT save history here.
+       *
+       * The backend already saves the audit
+       * into MongoDB.
+       */
 
       setData(jsonData);
-      setLoading(false);
-    } catch (err) {
-      console.error("Fetch error:", err);
 
-      setLoading(false);
+    } catch (err) {
+      console.error(
+        "Fetch error:",
+        err
+      );
+
       setUrlError(true);
 
-      alert(err.message || "Error occurred while analyzing website.");
+      alert(
+        err.message ||
+          "Error occurred while analyzing website."
+      );
+
+    } finally {
+      setLoading(false);
     }
   }
 
   async function SearchWebsite() {
-    if (!url.trim()) {
+    if (!url.trim() || isLoading) {
       return;
     }
 
@@ -107,10 +165,13 @@ export default function Home() {
   }
 
   return (
-    <div>
+    <div className="page">
+
       <button
         className="menu-button"
-        onClick={() => setSidebar(true)}
+        onClick={() =>
+          setSidebar(true)
+        }
       >
         <Menu size={22} />
       </button>
@@ -119,45 +180,61 @@ export default function Home() {
         <>
           <div
             className="sidebar-overlay"
-            onClick={() => setSidebar(false)}
+            onClick={() =>
+              setSidebar(false)
+            }
           />
 
           <aside className="sidebar">
+
             <div className="sidebar-top">
+
               <h2>WebAudit</h2>
 
               <button
                 className="close-button"
-                onClick={() => setSidebar(false)}
+                onClick={() =>
+                  setSidebar(false)
+                }
               >
                 <X size={20} />
               </button>
+
             </div>
 
             <Navbar
               sidebar={setSidebar}
               apiDrawer={setApiDrawer}
             />
+
           </aside>
         </>
       )}
 
       {apiDrawer && (
         <APIDrawer
-          close={() => setApiDrawer(false)}
+          close={() =>
+            setApiDrawer(false)
+          }
         />
       )}
 
-      {isLoading && <LoadingPage />}
+      {isLoading && (
+        <LoadingPage />
+      )}
 
       <main className="main-content">
+
         <div className="search-container">
+
           <p className="search-help">
-            Enter a website URL to analyze its performance,
-            SEO, accessibility, and more.
+            Enter a website URL to analyze
+            its performance, SEO,
+            accessibility, and more.
           </p>
 
           <div className="search-box">
+
             <input
               type="url"
               className="search-input"
@@ -168,7 +245,9 @@ export default function Home() {
                 setUrl(event.target.value)
               }
               onKeyDown={(event) => {
-                if (event.key === "Enter") {
+                if (
+                  event.key === "Enter"
+                ) {
                   SearchWebsite();
                 }
               }}
@@ -179,17 +258,23 @@ export default function Home() {
               className="search-icon"
               onClick={SearchWebsite}
             />
+
           </div>
 
           <span className="search-example">
             Try: https://example.com
           </span>
+
         </div>
 
         <Echart
-          dataFetched={data ? data : "-"}
+          dataFetched={
+            data ? data : "-"
+          }
         />
+
       </main>
+
     </div>
   );
 }
