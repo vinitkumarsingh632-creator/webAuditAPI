@@ -114,7 +114,7 @@ export default async function Lighthouse(url) {
             StatusCode: response.status,
             StatusText: response.statusText,
 
-            Latency: latency,
+            Latency: latency.toFixed(2),
 
             Improvements: badPractices,
 
