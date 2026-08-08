@@ -326,6 +326,4 @@ curl -X POST "https://webauditapi.onrender.com/ui/analyze" \
 
 The project uses a Next.js frontend and an Express backend. Production environment variables must be configured on the hosting provider.
 
-## License
 
-Add your chosen license before publishing the repository.
