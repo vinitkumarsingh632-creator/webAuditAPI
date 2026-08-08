@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import resend from "./src/mail.js";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
@@ -448,12 +449,21 @@ app.post("/auth", async (req, res) => {
 
     console.log("1. Request received");
 
-    await transporter.sendMail({
-      from: process.env.EMAIL,
-      to: email,
-      subject: "Verify Your Email - WebOrbit",
-      html: template.replace("{{OTP}}", String(OTP)),
-    });
+    const { data, error } = await resend.emails.send({
+  from: "WebAudit <onboarding@resend.dev>",
+  to: [email],
+  subject: "Verify Your Email - WebOrbit",
+  html,
+});
+
+if (error) {
+  console.error("EMAIL ERROR:", error);
+
+  return res.status(500).json({
+    status: false,
+    message: "Failed to send OTP.",
+  });
+}
 
     console.log("2. Email sent");
 
