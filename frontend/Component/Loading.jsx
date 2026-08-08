@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 export default function LoadingPage() {
-  const [count, setCount] = useState(60);
+  const [count, setCount] = useState(120);
 
   useEffect(() => {
     const id = setInterval(() => {
