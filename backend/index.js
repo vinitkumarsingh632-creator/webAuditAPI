@@ -13,13 +13,8 @@ import Lighthouse from "./src/lighthouse.js";
 import { generateAPIKey } from "./src/apiKey.js";
 import { APIAuth } from "./src/apiAuth.js";
 
-dotenv.config({
-  path: ".env.server",
-});
+dotenv.config()
 
-dotenv.config({
-  path: ".env.mail",
-});
 
 const app = express();
 

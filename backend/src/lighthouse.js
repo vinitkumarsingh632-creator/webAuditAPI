@@ -4,11 +4,7 @@ export default async function Lighthouse(url) {
     let response;
     let latency;
 
-    /*
-     * --------------------------------------------------
-     * 1. Check the target website
-     * --------------------------------------------------
-     */
+   
 
     try {
         const start = performance.now();

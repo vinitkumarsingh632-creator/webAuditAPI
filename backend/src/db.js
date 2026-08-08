@@ -1,9 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-dotenv.config({
-  path: "./.env.db",
-});
+dotenv.config()
 
 try {
   mongoose.connection.on("connected", () => {
@@ -24,9 +22,7 @@ try {
 }
 
 
-/* =========================
-   OTP
-========================= */
+
 
 const OTP = new mongoose.Schema({
   OTP: {
