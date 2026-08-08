@@ -145,6 +145,7 @@ export default function Home() {
             <input
               type="url"
               className="search-input"
+              disabled={isLoading}
               placeholder="https://example.com"
               value={url}
               onChange={(event) =>
