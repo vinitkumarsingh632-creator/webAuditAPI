@@ -62,10 +62,10 @@ console.log(
 
         params.set("strategy", "desktop");
 
-        params.append("category", "performance");
-        params.append("category", "seo");
-        params.append("category", "accessibility");
-        params.append("category", "best-practices");
+params.append("category", "performance");
+// params.append("category", "seo");
+// params.append("category", "accessibility");
+// params.append("category", "best-practices");
 
 
        console.log("3. Starting PageSpeed");
