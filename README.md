@@ -86,10 +86,12 @@ The backend sends the target website URL to PageSpeed Insights and processes the
 ## Tech Stack
 
 **Frontend**
+
 - Next.js
 - React
 
 **Backend**
+
 - Node.js
 - Express
 - MongoDB
@@ -97,6 +99,7 @@ The backend sends the target website URL to PageSpeed Insights and processes the
 - PageSpeed Insights API
 
 **Deployment**
+
 - Frontend: Vercel
 - Backend: Render
 
@@ -418,7 +421,3 @@ When another developer forks the repository, they need to provide their own data
 4. Make your changes.
 5. Test the frontend and API.
 6. Open a pull request.
-
-## License
-
-Add a license to the project if you plan to distribute the code publicly.
