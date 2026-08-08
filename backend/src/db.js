@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 
-dotenv.config()
+dotenv.config();
 
 try {
   mongoose.connection.on("connected", () => {
@@ -20,30 +20,6 @@ try {
 } catch (err) {
   console.log(err);
 }
-
-
-
-
-const OTP = new mongoose.Schema({
-  OTP: {
-    type: Number,
-    required: true,
-  },
-
-  Email: {
-    type: String,
-    required: true,
-  },
-
-  Expires: {
-    type: Date,
-    default: Date.now,
-    expires: 240,
-  },
-});
-
-
-
 
 const User = new mongoose.Schema({
   Email: {
@@ -67,13 +43,6 @@ const User = new mongoose.Schema({
   },
 });
 
-
-const otp =
-  mongoose.models.otpStore ||
-  mongoose.model("otpStore", OTP);
-
 export const user =
   mongoose.models.userDetail ||
   mongoose.model("userDetail", User);
-
-export default otp;

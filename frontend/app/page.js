@@ -31,22 +31,43 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
         }
       );
 
       const jsonData = await fetchedData.json();
 
-      setLoading(false);
-
       if (jsonData.fetchError) {
+        setLoading(false);
         alert("Invalid URL");
         return;
       }
 
-     
+      if (!fetchedData.ok) {
+        setLoading(false);
+        alert(
+          jsonData.message || "Failed to analyze website"
+        );
+        return;
+      }
+
+      
+      const existingHistory = JSON.parse(
+        localStorage.getItem("auditHistory") || "[]"
+      );
+
+      const updatedHistory = [
+        jsonData,
+        ...existingHistory,
+      ];
+
+      localStorage.setItem(
+        "auditHistory",
+        JSON.stringify(updatedHistory)
+      );
 
       setData(jsonData);
+      setLoading(false);
+
     } catch (err) {
       console.error(err);
 
@@ -57,20 +78,21 @@ export default function Home() {
     }
   }
 
-  function SearchWebsite() {
+  async function SearchWebsite() {
     if (!url.trim()) return;
 
     setLoading(true);
+    setUrlError(false);
 
-    FetchData(url);
+    await FetchData(url);
 
     setUrl("");
   }
 
   return (
-    <div className="page">
+    <div>
 
-      {/* MENU */}
+      
 
       <button
         className="menu-button"
@@ -80,7 +102,7 @@ export default function Home() {
       </button>
 
 
-      {/* SIDEBAR */}
+     
 
       {sidebar && (
         <>
@@ -114,7 +136,7 @@ export default function Home() {
       )}
 
 
-      {/* API DRAWER */}
+      
 
       {apiDrawer && (
         <APIDrawer
@@ -123,12 +145,12 @@ export default function Home() {
       )}
 
 
-      {/* LOADING */}
+   
 
       {isLoading && <LoadingPage />}
 
 
-      {/* MAIN PAGE */}
+    
 
       <main className="main-content">
 
@@ -158,7 +180,6 @@ export default function Home() {
               }}
             />
 
-
             <Search
               size={22}
               className="search-icon"
@@ -175,7 +196,6 @@ export default function Home() {
         </div>
 
 
-        {/* RESULTS */}
 
         <Echart
           dataFetched={data ? data : "-"}

@@ -9,188 +9,142 @@ export default function History() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchHistory() {
-      try {
-        const response = await fetch(
-          "https://webauditapi.onrender.com/api/history",
-          {
-            credentials: "include",
-          }
-        );
+    try {
+      const storedHistory = localStorage.getItem("auditHistory");
 
-        const data = await response.json();
+      if (storedHistory) {
+        const parsedHistory = JSON.parse(storedHistory);
 
-        if (!data.status) {
-          setError(
-            data.message || "Failed to fetch history"
-          );
-          return;
+        if (Array.isArray(parsedHistory)) {
+          setHistory(parsedHistory);
         }
-
-        setHistory(data.History || []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to connect to server.");
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load audit history.");
+    } finally {
+      setLoading(false);
     }
-
-    fetchHistory();
   }, []);
 
+  function clearHistory() {
+    localStorage.removeItem("auditHistory");
+    setHistory([]);
+  }
+
   if (loading) {
-    return (
-      <div className="history-center">
-        Loading history...
-      </div>
-    );
+    return <div>Loading history...</div>;
   }
 
   if (error) {
-    return (
-      <div className="history-center">
-        {error}
-      </div>
-    );
+    return <div>{error}</div>;
   }
 
   if (history.length === 0) {
     return (
-      <div className="history-center">
-        No audits yet.
+      <div className="history-container">
+        <h1 className="history-title">Audit History</h1>
+        <p>No audits yet.</p>
       </div>
     );
   }
 
   return (
-    <main className="history-page">
+    <div className="history-container">
+      <div className="history-header">
+        <h1 className="history-title">Audit History</h1>
 
-      <div className="history-container">
-
-        <h1 className="history-title">
-          Audit History
-        </h1>
-
-        <div className="history-list">
-
-          {history.map((item, index) => (
-            <div
-              className="history-card"
-              key={index}
-            >
-
-              {/* TOP */}
-
-              <div className="history-card-top">
-
-                <div className="history-url-container">
-
-                  <h2 className="history-url">
-                    {item.URL}
-                  </h2>
-
-                  <p className="history-date">
-                    {item.Timestamp
-                      ? new Date(
-                          item.Timestamp
-                        ).toLocaleString()
-                      : "Unknown date"}
-                  </p>
-
-                </div>
-
-                <div
-                  className={`history-status ${
-                    item.StatusCode >= 200 &&
-                    item.StatusCode < 300
-                      ? "status-success"
-                      : "status-error"
-                  }`}
-                >
-                  {item.StatusCode}
-                </div>
-
-              </div>
-
-
-              {/* MAIN METRICS */}
-
-              <div className="history-metrics">
-
-                <Metric
-                  name="Performance"
-                  value={
-                    item.Performance?.Score
-                  }
-                />
-
-                <Metric
-                  name="SEO"
-                  value={
-                    item.SEO?.Score
-                  }
-                />
-
-                <Metric
-                  name="Accessibility"
-                  value={
-                    item.Accessibility?.Score
-                  }
-                />
-
-                <Metric
-                  name="Best Practices"
-                  value={
-                    item.Best_Practices?.Score
-                  }
-                />
-
-              </div>
-
-
-              {/* DETAILS */}
-
-              <div className="history-details">
-
-                <span>
-                  <strong>LCP</strong>
-                  {item.LCP?.DisplayValue || "-"}
-                </span>
-
-                <span>
-                  <strong>FCP</strong>
-                  {item.FCP?.DisplayValue || "-"}
-                </span>
-
-                <span>
-                  <strong>CLS</strong>
-                  {item.CLS?.DisplayValue || "-"}
-                </span>
-
-                <span>
-                  <strong>Speed Index</strong>
-                  {item.SpeedIndex?.DisplayValue || "-"}
-                </span>
-
-                <span>
-                  <strong>Latency</strong>
-                  {item.Latency ?? "-"} ms
-                </span>
-
-              </div>
-
-            </div>
-          ))}
-
-        </div>
-
+        <button
+          onClick={clearHistory}
+          className="clear-history-button"
+        >
+          Clear History
+        </button>
       </div>
 
-    </main>
+      <div className="history-list">
+        {history.map((item, index) => (
+          <div
+            className="history-card"
+            key={`${item.URL}-${item.Timestamp}-${index}`}
+          >
+            <div className="history-card-top">
+              <div className="history-url-container">
+                <h2 className="history-url">{item.URL}</h2>
+
+                <p className="history-date">
+                  {item.Timestamp
+                    ? new Date(item.Timestamp).toLocaleString()
+                    : "Unknown date"}
+                </p>
+              </div>
+
+              <div
+                className={`history-status ${
+                  item.StatusCode >= 200 &&
+                  item.StatusCode < 300
+                    ? "status-success"
+                    : "status-error"
+                }`}
+              >
+                {item.StatusCode ?? "-"}
+              </div>
+            </div>
+
+            <div className="history-metrics">
+              <Metric
+                name="Performance"
+                value={item.Performance?.Score}
+              />
+
+              <Metric
+                name="SEO"
+                value={item.SEO?.Score}
+              />
+
+              <Metric
+                name="Accessibility"
+                value={item.Accessibility?.Score}
+              />
+
+              <Metric
+                name="Best Practices"
+                value={item.Best_Practices?.Score}
+              />
+            </div>
+
+            <div className="history-details">
+              <span>
+                <strong>LCP</strong>{" "}
+                {item.LCP?.DisplayValue || "-"}
+              </span>
+
+              <span>
+                <strong>FCP</strong>{" "}
+                {item.FCP?.DisplayValue || "-"}
+              </span>
+
+              <span>
+                <strong>CLS</strong>{" "}
+                {item.CLS?.DisplayValue || "-"}
+              </span>
+
+              <span>
+                <strong>Speed Index</strong>{" "}
+                {item.SpeedIndex?.DisplayValue || "-"}
+              </span>
+
+              <span>
+                <strong>Latency</strong>{" "}
+                {item.Latency ?? "-"} ms
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
-
 
 function Metric({ name, value }) {
   const score =
@@ -200,17 +154,13 @@ function Metric({ name, value }) {
 
   return (
     <div className="history-metric">
-
       <span className="history-metric-name">
         {name}
       </span>
 
       <strong className="history-metric-value">
-        {score !== null
-          ? score
-          : "-"}
+        {score !== null ? score : "-"}
       </strong>
-
     </div>
   );
 }
