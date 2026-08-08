@@ -192,7 +192,7 @@ export const doc = `
     <li>
       Open the
       <a
-        href="http://localhost:3000"
+        href="http://localhost:4000"
         target="_blank"
         rel="noopener noreferrer"
       >
