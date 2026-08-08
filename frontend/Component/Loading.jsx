@@ -1,59 +1,109 @@
+"use client";
 
-export default async function FetchData(url) {
-  const analysisRequest = fetch(
-    "https://webauditapi.onrender.com/ui/analyze",
-    {
-      method: "POST",
-      body: JSON.stringify({ url }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    }
-  ).then(async (response) => {
-    const jsonData = await response.json();
+import { useEffect, useState } from "react";
 
-    if (!response.ok) {
-      throw new Error(jsonData.message || "Analysis failed");
-    }
+export default function LoadingPage() {
+  const [count, setCount] = useState(60);
 
-    return jsonData;
-  });
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCount((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
 
-  const timeout = new Promise((_, reject) => {
-    setTimeout(() => {
-      reject(new Error("Analysis timed out after 60 seconds"));
-    }, 60000);
-  });
+    return () => clearInterval(id);
+  }, []);
 
-  try {
-    const jsonData = await Promise.race([
-      analysisRequest,
-      timeout,
-    ]);
+  return (
+    <div style={style.overlay}>
+      <div style={style.card}>
+        <div style={style.spinner}></div>
 
-    if (jsonData.fetchError) {
-      alert("Invalid URL");
-      return;
-    }
+        <h2 style={style.title}>
+          Analyzing Website
+        </h2>
 
-    if (jsonData.lighthouseError) {
-      alert(jsonData.message || "Lighthouse failed");
-      return;
-    }
+        <p style={style.subtitle}>
+          Please wait while we fetch performance, SEO
+          and accessibility data...
+        </p>
 
-    setData(jsonData);
-
-  } catch (err) {
-    console.error(err);
-
-    alert(
-      err.message === "Analysis timed out after 60 seconds"
-        ? "Analysis is taking too long. Please try again."
-        : "Error connecting to WebAudit API."
-    );
-
-  } finally {
-    setLoading(false);
-  }
+        <p style={style.timer}>
+          {count}s
+        </p>
+      </div>
+    </div>
+  );
 }
+
+const style = {
+  overlay: {
+    position: "fixed",
+    inset: 0,
+
+    background: "rgba(10,10,20,0.5)",
+    backdropFilter: "blur(6px)",
+    WebkitBackdropFilter: "blur(6px)",
+
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+
+    zIndex: 99999,
+  },
+
+  card: {
+    width: "min(420px, calc(100% - 40px))",
+
+    background: "rgba(255,255,255,0.12)",
+    backdropFilter: "blur(20px)",
+    WebkitBackdropFilter: "blur(20px)",
+
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: "20px",
+
+    padding: "40px 30px",
+
+    textAlign: "center",
+    color: "white",
+
+    boxShadow: "0 15px 40px rgba(0,0,0,.35)",
+
+    boxSizing: "border-box",
+  },
+
+  spinner: {
+    width: "55px",
+    height: "55px",
+
+    border: "5px solid rgba(255,255,255,.2)",
+    borderTop: "5px solid white",
+
+    borderRadius: "50%",
+
+    margin: "0 auto 25px",
+
+    animation: "spin 1s linear infinite",
+  },
+
+  title: {
+    margin: 0,
+    fontSize: "1.5rem",
+    fontWeight: 700,
+  },
+
+  subtitle: {
+    marginTop: "12px",
+    color: "rgba(255,255,255,.75)",
+    lineHeight: 1.5,
+    fontSize: ".95rem",
+  },
+
+  timer: {
+    marginTop: "18px",
+    marginBottom: 0,
+
+    fontWeight: "bold",
+    fontSize: "1.2rem",
+    letterSpacing: "2px",
+  },
+};
