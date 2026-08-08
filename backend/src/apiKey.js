@@ -77,38 +77,36 @@ export async function createAPIKey(developerId) {
   const encryptedData = encryptAPIKey(key);
 
   const keyDocument = await APIKey.findOneAndUpdate(
-    {
+  { developerId },
+  {
+    $set: {
+      keyHash: hashAPIKey(key),
+      encryptedKey: encryptedData.encrypted,
+      encryptionIv: encryptedData.iv,
+      encryptionAuthTag: encryptedData.authTag,
+      active: true,
+      lastUsedAt: null,
+      requestCount: 0,
+    },
+    $setOnInsert: {
       developerId,
+      createdAt: new Date(),
     },
-    {
-      $set: {
-        keyHash: hashAPIKey(key),
+  },
+  {
+    new: true,
+    upsert: true,
+    setDefaultsOnInsert: true,
+  }
+);
 
-        encryptedKey:
-          encryptedData.encrypted,
-
-        encryptionIv:
-          encryptedData.iv,
-
-        encryptionAuthTag:
-          encryptedData.authTag,
-
-        active: true,
-        lastUsedAt: null,
-        requestCount: 0,
-      },
-
-      $setOnInsert: {
-        developerId,
-        createdAt: new Date(),
-      },
-    },
-    {
-      new: true,
-      upsert: true,
-      setDefaultsOnInsert: true,
-    }
-  );
+console.log("UPDATED API KEY DOCUMENT:", {
+  id: keyDocument._id,
+  developerId: keyDocument.developerId,
+  hasEncryptedKey: !!keyDocument.encryptedKey,
+  hasIv: !!keyDocument.encryptionIv,
+  hasAuthTag: !!keyDocument.encryptionAuthTag,
+});
 
   return {
     key,
