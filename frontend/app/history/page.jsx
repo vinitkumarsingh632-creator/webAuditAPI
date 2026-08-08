@@ -1,49 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "../../Styles/History.css";
 
 export default function History() {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
+  const [history, setHistory] = useState(() => {
     try {
       const storedHistory = localStorage.getItem("auditHistory");
 
-      if (storedHistory) {
-        const parsedHistory = JSON.parse(storedHistory);
-
-        if (Array.isArray(parsedHistory)) {
-          setHistory(parsedHistory);
-        }
+      if (!storedHistory) {
+        return [];
       }
+
+      const parsedHistory = JSON.parse(storedHistory);
+
+      return Array.isArray(parsedHistory)
+        ? parsedHistory
+        : [];
     } catch (err) {
       console.error(err);
-      setError("Failed to load audit history.");
-    } finally {
-      setLoading(false);
+      return [];
     }
-  }, []);
+  });
+
+  const [error, setError] = useState("");
 
   function clearHistory() {
-    localStorage.removeItem("auditHistory");
-    setHistory([]);
-  }
-
-  if (loading) {
-    return <div>Loading history...</div>;
+    try {
+      localStorage.removeItem("auditHistory");
+      setHistory([]);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to clear history.");
+    }
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className="history-container">
+        {error}
+      </div>
+    );
   }
 
   if (history.length === 0) {
     return (
       <div className="history-container">
-        <h1 className="history-title">Audit History</h1>
+        <h1 className="history-title">
+          Audit History
+        </h1>
+
         <p>No audits yet.</p>
       </div>
     );
@@ -52,7 +58,9 @@ export default function History() {
   return (
     <div className="history-container">
       <div className="history-header">
-        <h1 className="history-title">Audit History</h1>
+        <h1 className="history-title">
+          Audit History
+        </h1>
 
         <button
           onClick={clearHistory}
@@ -70,11 +78,15 @@ export default function History() {
           >
             <div className="history-card-top">
               <div className="history-url-container">
-                <h2 className="history-url">{item.URL}</h2>
+                <h2 className="history-url">
+                  {item.URL}
+                </h2>
 
                 <p className="history-date">
                   {item.Timestamp
-                    ? new Date(item.Timestamp).toLocaleString()
+                    ? new Date(
+                        item.Timestamp
+                      ).toLocaleString()
                     : "Unknown date"}
                 </p>
               </div>
