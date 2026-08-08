@@ -24,56 +24,56 @@ const DeveloperSchema = new mongoose.Schema(
   }
 );
 
-const APIKeySchema = new mongoose.Schema(
-  {
-    developerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Developer",
-      required: true,
-      index: true,
-    },
+const APIKeySchema = new mongoose.Schema({
+  developerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Developer",
+    required: true,
+    unique: true,
+    index: true,
+  },
 
-    keyHash: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+  keyHash: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+  encryptedKey: {
+    type: String,
+    required: true,
+  },
 
-    lastUsedAt: {
-      type: Date,
-      default: null,
-    },
+  encryptionIv: {
+    type: String,
+    required: true,
+  },
 
-    requestCount: {
-      type: Number,
-      default: 0,
-    },
+  encryptionAuthTag: {
+    type: String,
+    required: true,
+  },
 
-    active: {
-      type: Boolean,
-      default: true,
-    },
-    encryptedKey: {
-  type: String,
-  required: true,
-},
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 
-encryptionIv: {
-  type: String,
-  required: true,
-},
+  lastUsedAt: {
+    type: Date,
+    default: null,
+  },
 
-encryptionAuthTag: {
-  type: String,
-  required: true,
-},
-  }
-);
+  requestCount: {
+    type: Number,
+    default: 0,
+  },
+
+  active: {
+    type: Boolean,
+    default: true,
+  },
+});
 
 const AuditHistorySchema = new mongoose.Schema(
   {

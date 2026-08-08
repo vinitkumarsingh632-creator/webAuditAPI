@@ -76,13 +76,39 @@ export async function createAPIKey(developerId) {
 
   const encryptedData = encryptAPIKey(key);
 
-  const keyDocument = await APIKey.create({
-    developerId,
-    keyHash: hashAPIKey(key),
-    encryptedKey: encryptedData.encrypted,
-    encryptionIv: encryptedData.iv,
-    encryptionAuthTag: encryptedData.authTag,
-  });
+  const keyDocument = await APIKey.findOneAndUpdate(
+    {
+      developerId,
+    },
+    {
+      $set: {
+        keyHash: hashAPIKey(key),
+
+        encryptedKey:
+          encryptedData.encrypted,
+
+        encryptionIv:
+          encryptedData.iv,
+
+        encryptionAuthTag:
+          encryptedData.authTag,
+
+        active: true,
+        lastUsedAt: null,
+        requestCount: 0,
+      },
+
+      $setOnInsert: {
+        developerId,
+        createdAt: new Date(),
+      },
+    },
+    {
+      new: true,
+      upsert: true,
+      setDefaultsOnInsert: true,
+    }
+  );
 
   return {
     key,
