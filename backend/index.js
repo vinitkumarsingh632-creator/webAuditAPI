@@ -9,11 +9,13 @@ import Lighthouse from "./src/lighthouse.js";
 import {
   connectDB,
   Developer,
+  APIKey,
   AuditHistory,
 } from "./src/db.js";
 
 import {
   createAPIKey,
+  decryptAPIKey,
 } from "./src/apiKey.js";
 
 import {
@@ -34,7 +36,8 @@ app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: "https://web-audit-api-kappa.vercel.app",
+    origin:
+      "https://web-audit-api-kappa.vercel.app",
     credentials: false,
   })
 );
@@ -84,13 +87,18 @@ app.get("/api/v1/info", (req, res) => {
     version: "1.0.0",
     description:
       "Website performance, SEO, accessibility and best-practice auditing API.",
+
     endpoints: {
       health: "GET /api/v1/health",
       info: "GET /api/v1/info",
       limits: "GET /api/v1/limits",
+      keys: "GET /api/v1/keys",
       history: "GET /api/v1/history",
+      createDeveloper: "POST /api/v1/developers",
+      generateKey: "POST /api/v1/keys",
       analyze: "POST /api/v1/analyze",
     },
+
     authentication: "API key",
   });
 });
@@ -98,11 +106,13 @@ app.get("/api/v1/info", (req, res) => {
 app.get("/api/v1/limits", (req, res) => {
   return res.status(200).json({
     status: true,
+
     limits: {
       general: {
         window: "15 seconds",
         requests: 5,
       },
+
       developerAPI: {
         window: "60 seconds",
         requests: 30,
@@ -111,55 +121,80 @@ app.get("/api/v1/limits", (req, res) => {
   });
 });
 
-app.post("/api/v1/developers", async (req, res) => {
-  try {
-    const { name } = req.body;
+app.post(
+  "/api/v1/developers",
+  async (req, res) => {
+    try {
+      const { name } = req.body;
 
-    if (!name || !name.trim()) {
-      return res.status(400).json({
+      if (!name || !name.trim()) {
+        return res.status(400).json({
+          status: false,
+          message: "Name is required.",
+        });
+      }
+
+      const secret =
+        generateDeveloperSecret();
+
+      const developer =
+        await Developer.create({
+          name: name.trim(),
+          secretHash: hashSecret(secret),
+        });
+
+      return res.status(201).json({
+        status: true,
+        message:
+          "Developer account created.",
+
+        developer: {
+          id: developer._id,
+          name: developer.name,
+        },
+
+        secret,
+      });
+    } catch (err) {
+      console.error(
+        "CREATE DEVELOPER ERROR:",
+        err
+      );
+
+      return res.status(500).json({
         status: false,
-        message: "Name is required.",
+        message:
+          "Failed to create developer account.",
+        error: err.message,
       });
     }
-
-    const secret = generateDeveloperSecret();
-
-    const developer = await Developer.create({
-      name: name.trim(),
-      secretHash: hashSecret(secret),
-    });
-
-    return res.status(201).json({
-      status: true,
-      message: "Developer account created.",
-      developer: {
-        id: developer._id,
-        name: developer.name,
-      },
-      secret,
-    });
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      status: false,
-      message: "Failed to create developer account.",
-    });
   }
-});
+);
 
 app.post(
   "/api/v1/keys",
   developerAuth,
   async (req, res) => {
     try {
-      const result = await createAPIKey(
+      console.log(
+        "Creating API key for:",
         req.developer._id
+      );
+
+      const result =
+        await createAPIKey(
+          req.developer._id
+        );
+
+      console.log(
+        "API key created:",
+        result.id
       );
 
       return res.status(200).json({
         status: true,
-        message: "API key generated successfully.",
+        message:
+          "API key generated successfully.",
         apiKey: result.key,
         id: result.id,
       });
@@ -171,94 +206,213 @@ app.post(
 
       return res.status(500).json({
         status: false,
-        message: "Failed to create API key.",
+        message:
+          "Failed to create API key.",
+        error: err.message,
       });
     }
   }
 );
 
-app.post("/ui/analyze", developerAuth, async (req, res) => {
-  try {
-    const { url } = req.body;
-
-    if (!url) {
-      return res.status(400).json({
-        status: false,
-        message: "URL is required.",
-      });
-    }
-
-    let parsedURL;
-
+app.get(
+  "/api/v1/keys",
+  developerAuth,
+  async (req, res) => {
     try {
-      parsedURL = new URL(url);
-    } catch {
-      return res.status(400).json({
-        status: false,
-        message: "Invalid URL.",
-      });
-    }
+      const keyDocument =
+        await APIKey.findOne({
+          developerId:
+            req.developer._id,
+          active: true,
+        });
 
-    if (
-      parsedURL.protocol !== "http:" &&
-      parsedURL.protocol !== "https:"
-    ) {
-      return res.status(400).json({
+      if (!keyDocument) {
+        return res.status(404).json({
+          status: false,
+          message:
+            "No API key has been generated.",
+        });
+      }
+
+      if (
+        !keyDocument.encryptedKey ||
+        !keyDocument.encryptionIv ||
+        !keyDocument.encryptionAuthTag
+      ) {
+        return res.status(500).json({
+          status: false,
+          message:
+            "API key encryption data is missing.",
+        });
+      }
+
+      const apiKey = decryptAPIKey({
+        encrypted:
+          keyDocument.encryptedKey,
+
+        iv:
+          keyDocument.encryptionIv,
+
+        authTag:
+          keyDocument.encryptionAuthTag,
+      });
+
+      return res.status(200).json({
+        status: true,
+        APIKey: apiKey,
+      });
+    } catch (err) {
+      console.error(
+        "FETCH API KEY ERROR:",
+        err
+      );
+
+      return res.status(500).json({
         status: false,
         message:
-          "Only HTTP and HTTPS URLs are supported.",
+          "Failed to fetch API key.",
+        error: err.message,
       });
     }
-
-    const lighthouseData = await Lighthouse(url);
-
-    if (lighthouseData.fetchError) {
-      return res.status(400).json(lighthouseData);
-    }
-
-    if (lighthouseData.lighthouseError) {
-      return res.status(500).json(lighthouseData);
-    }
-
-    await AuditHistory.create({
-      ownerType: "ui",
-      ownerId: req.developer._id.toString(),
-      URL: lighthouseData.URL || url,
-      StatusCode: lighthouseData.StatusCode,
-      Performance: lighthouseData.Performance,
-      SEO: lighthouseData.SEO,
-      Accessibility: lighthouseData.Accessibility,
-      Best_Practices: lighthouseData.Best_Practices,
-      LCP: lighthouseData.LCP,
-      FCP: lighthouseData.FCP,
-      CLS: lighthouseData.CLS,
-      SpeedIndex: lighthouseData.SpeedIndex,
-      Latency: lighthouseData.Latency,
-      Result: lighthouseData,
-    });
-
-    return res.status(200).json(lighthouseData);
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      status: false,
-      message: "Internal server error.",
-    });
   }
-});
+);
+
+app.post(
+  "/ui/analyze",
+  developerAuth,
+  async (req, res) => {
+    try {
+      const { url } = req.body;
+
+      if (!url) {
+        return res.status(400).json({
+          status: false,
+          message: "URL is required.",
+        });
+      }
+
+      let parsedURL;
+
+      try {
+        parsedURL = new URL(url);
+      } catch {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid URL.",
+        });
+      }
+
+      if (
+        parsedURL.protocol !==
+          "http:" &&
+        parsedURL.protocol !==
+          "https:"
+      ) {
+        return res.status(400).json({
+          status: false,
+          message:
+            "Only HTTP and HTTPS URLs are supported.",
+        });
+      }
+
+      const lighthouseData =
+        await Lighthouse(url);
+
+      if (
+        lighthouseData.fetchError
+      ) {
+        return res
+          .status(400)
+          .json(lighthouseData);
+      }
+
+      if (
+        lighthouseData.lighthouseError
+      ) {
+        return res
+          .status(500)
+          .json(lighthouseData);
+      }
+
+      await AuditHistory.create({
+        ownerType: "ui",
+
+        ownerId:
+          req.developer._id.toString(),
+
+        URL:
+          lighthouseData.URL ||
+          url,
+
+        StatusCode:
+          lighthouseData.StatusCode,
+
+        Performance:
+          lighthouseData.Performance,
+
+        SEO:
+          lighthouseData.SEO,
+
+        Accessibility:
+          lighthouseData.Accessibility,
+
+        Best_Practices:
+          lighthouseData.Best_Practices,
+
+        LCP:
+          lighthouseData.LCP,
+
+        FCP:
+          lighthouseData.FCP,
+
+        CLS:
+          lighthouseData.CLS,
+
+        SpeedIndex:
+          lighthouseData.SpeedIndex,
+
+        Latency:
+          lighthouseData.Latency,
+
+        Result:
+          lighthouseData,
+      });
+
+      return res
+        .status(200)
+        .json(lighthouseData);
+    } catch (err) {
+      console.error(
+        "UI ANALYZE ERROR:",
+        err
+      );
+
+      return res.status(500).json({
+        status: false,
+        message:
+          "Internal server error.",
+        error: err.message,
+      });
+    }
+  }
+);
 
 app.get(
   "/ui/history",
   developerAuth,
   async (req, res) => {
     try {
-      const history = await AuditHistory.find({
-        ownerType: "ui",
-        ownerId: req.developer._id.toString(),
-      })
-        .sort({ Timestamp: -1 })
-        .lean();
+      const history =
+        await AuditHistory.find({
+          ownerType: "ui",
+
+          ownerId:
+            req.developer._id.toString(),
+        })
+          .sort({
+            Timestamp: -1,
+          })
+          .lean();
 
       return res.status(200).json({
         status: true,
@@ -266,11 +420,16 @@ app.get(
         History: history,
       });
     } catch (err) {
-      console.error(err);
+      console.error(
+        "UI HISTORY ERROR:",
+        err
+      );
 
       return res.status(500).json({
         status: false,
-        message: "Failed to fetch UI history.",
+        message:
+          "Failed to fetch UI history.",
+        error: err.message,
       });
     }
   }
@@ -302,8 +461,10 @@ app.post(
       }
 
       if (
-        parsedURL.protocol !== "http:" &&
-        parsedURL.protocol !== "https:"
+        parsedURL.protocol !==
+          "http:" &&
+        parsedURL.protocol !==
+          "https:"
       ) {
         return res.status(400).json({
           status: false,
@@ -312,31 +473,67 @@ app.post(
         });
       }
 
-      const lighthouseData = await Lighthouse(url);
+      const lighthouseData =
+        await Lighthouse(url);
 
-      if (lighthouseData.fetchError) {
-        return res.status(400).json(lighthouseData);
+      if (
+        lighthouseData.fetchError
+      ) {
+        return res
+          .status(400)
+          .json(lighthouseData);
       }
 
-      if (lighthouseData.lighthouseError) {
-        return res.status(500).json(lighthouseData);
+      if (
+        lighthouseData.lighthouseError
+      ) {
+        return res
+          .status(500)
+          .json(lighthouseData);
       }
 
       await AuditHistory.create({
         ownerType: "api",
-        ownerId: req.apiKey._id.toString(),
-        URL: lighthouseData.URL || url,
-        StatusCode: lighthouseData.StatusCode,
-        Performance: lighthouseData.Performance,
-        SEO: lighthouseData.SEO,
-        Accessibility: lighthouseData.Accessibility,
-        Best_Practices: lighthouseData.Best_Practices,
-        LCP: lighthouseData.LCP,
-        FCP: lighthouseData.FCP,
-        CLS: lighthouseData.CLS,
-        SpeedIndex: lighthouseData.SpeedIndex,
-        Latency: lighthouseData.Latency,
-        Result: lighthouseData,
+
+        ownerId:
+          req.apiKey._id.toString(),
+
+        URL:
+          lighthouseData.URL ||
+          url,
+
+        StatusCode:
+          lighthouseData.StatusCode,
+
+        Performance:
+          lighthouseData.Performance,
+
+        SEO:
+          lighthouseData.SEO,
+
+        Accessibility:
+          lighthouseData.Accessibility,
+
+        Best_Practices:
+          lighthouseData.Best_Practices,
+
+        LCP:
+          lighthouseData.LCP,
+
+        FCP:
+          lighthouseData.FCP,
+
+        CLS:
+          lighthouseData.CLS,
+
+        SpeedIndex:
+          lighthouseData.SpeedIndex,
+
+        Latency:
+          lighthouseData.Latency,
+
+        Result:
+          lighthouseData,
       });
 
       return res.status(200).json({
@@ -344,11 +541,16 @@ app.post(
         data: lighthouseData,
       });
     } catch (err) {
-      console.error(err);
+      console.error(
+        "API ANALYZE ERROR:",
+        err
+      );
 
       return res.status(500).json({
         status: false,
-        message: "Failed to analyze website.",
+        message:
+          "Failed to analyze website.",
+        error: err.message,
       });
     }
   }
@@ -359,12 +561,17 @@ app.get(
   APIAuth,
   async (req, res) => {
     try {
-      const history = await AuditHistory.find({
-        ownerType: "api",
-        ownerId: req.apiKey._id.toString(),
-      })
-        .sort({ Timestamp: -1 })
-        .lean();
+      const history =
+        await AuditHistory.find({
+          ownerType: "api",
+
+          ownerId:
+            req.apiKey._id.toString(),
+        })
+          .sort({
+            Timestamp: -1,
+          })
+          .lean();
 
       return res.status(200).json({
         status: true,
@@ -372,11 +579,16 @@ app.get(
         history,
       });
     } catch (err) {
-      console.error(err);
+      console.error(
+        "API HISTORY ERROR:",
+        err
+      );
 
       return res.status(500).json({
         status: false,
-        message: "Failed to fetch history.",
+        message:
+          "Failed to fetch API history.",
+        error: err.message,
       });
     }
   }
@@ -392,8 +604,11 @@ app.get("/", (req, res) => {
   );
 });
 
-app.listen(process.env.PORT, () => {
-  console.log(
-    `Server started on port ${process.env.PORT}`
-  );
-});
+app.listen(
+  process.env.PORT,
+  () => {
+    console.log(
+      `Server started on port ${process.env.PORT}`
+    );
+  }
+);
