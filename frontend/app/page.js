@@ -44,7 +44,7 @@ export default function Home() {
         return;
       }
 
-      console.log(jsonData);
+     
 
       setData(jsonData);
     } catch (err) {

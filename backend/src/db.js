@@ -47,9 +47,7 @@ const OTP = new mongoose.Schema({
 });
 
 
-/* =========================
-   USER
-========================= */
+
 
 const User = new mongoose.Schema({
   Email: {
