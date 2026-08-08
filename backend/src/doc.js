@@ -8,149 +8,106 @@ export const doc = `
   <title>WebAudit API Documentation</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      padding: 30px 20px;
-      background: #05051f;
-      color: white;
+      padding: 40px 20px;
       font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
       line-height: 1.6;
     }
 
     .container {
-      width: min(900px, 100%);
+      max-width: 900px;
       margin: auto;
     }
 
     h1 {
-      color: #818cf8;
+      color: white;
       margin-bottom: 8px;
     }
 
     h2 {
+      margin-top: 45px;
+      color: white;
+    }
+
+    h3 {
       margin-top: 30px;
-      margin-bottom: 8px;
+      color: #cbd5e1;
     }
 
     p {
-      color: rgba(255,255,255,.75);
+      color: #cbd5e1;
     }
 
     a {
-      color: #818cf8;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .intro {
-      margin-bottom: 30px;
-    }
-
-    .endpoint {
-      margin-top: 25px;
-      padding: 20px;
-
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 14px;
-    }
-
-    .method {
-      color: #4ade80;
-      font-weight: bold;
-      margin-right: 8px;
-    }
-
-    pre {
-      background: #02020d;
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 10px;
-
-      padding: 15px;
-
-      overflow-x: auto;
-
-      color: #e5e7eb;
-      font-family: monospace;
-      font-size: 14px;
-
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    code {
-      color: #a5b4fc;
-    }
-
-    .note {
-      margin-top: 15px;
-      padding: 15px;
-
-      background: rgba(129,140,248,.08);
-      border: 1px solid rgba(129,140,248,.25);
-
-      border-radius: 10px;
-
-      color: rgba(255,255,255,.8);
-    }
-
-    ol {
-      color: rgba(255,255,255,.8);
-      padding-left: 25px;
-    }
-
-    li {
-      margin-bottom: 8px;
+      color: #60a5fa;
     }
 
     .web-audit {
       display: inline-block;
-
-      margin-top: 5px;
+      margin: 15px 0 30px;
       padding: 10px 16px;
-
       border-radius: 8px;
-
-      background: #4f46e5;
+      background: #2563eb;
       color: white;
-
       text-decoration: none;
     }
 
-    .web-audit:hover {
-      text-decoration: none;
-      opacity: .9;
+    .endpoint {
+      margin-top: 30px;
+      padding: 22px;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      background: #111827;
     }
 
-    @media (max-width: 600px) {
+    .method {
+      display: inline-block;
+      padding: 4px 8px;
+      margin-right: 8px;
+      border-radius: 5px;
+      background: #2563eb;
+      color: white;
+      font-size: 13px;
+      font-weight: bold;
+    }
 
-      body {
-        padding: 20px 12px;
-      }
+    code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #1e293b;
+      color: #93c5fd;
+    }
 
-      h1 {
-        font-size: 1.7rem;
-      }
+    pre {
+      overflow-x: auto;
+      padding: 16px;
+      border-radius: 8px;
+      background: #020617;
+      color: #dbeafe;
+      border: 1px solid #1e293b;
+    }
 
-      h2 {
-        font-size: 1.2rem;
-      }
+    .warning {
+      padding: 15px;
+      border-left: 4px solid #f59e0b;
+      background: #1c1917;
+      color: #fed7aa;
+      border-radius: 5px;
+    }
 
-      .endpoint {
-        padding: 15px;
-      }
+    .success {
+      padding: 15px;
+      border-left: 4px solid #22c55e;
+      background: #052e16;
+      color: #bbf7d0;
+      border-radius: 5px;
+    }
 
-      pre {
-        font-size: 12px;
-        padding: 12px;
-      }
+    li {
+      margin: 8px 0;
     }
   </style>
 </head>
@@ -161,38 +118,29 @@ export const doc = `
 
   <h1>WebAudit API</h1>
 
-  <div class="intro">
-
-    <p>
-      Analyze websites and retrieve performance, SEO,
-      accessibility, best-practice and other website
-      audit data.
-    </p>
-
-    <a
-      class="web-audit"
-      href="http://localhost:3000"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      Open WebAudit
-    </a>
-
-  </div>
-
-
-  <h2>Getting an API Key</h2>
-
   <p>
-    You need a WebAudit account to obtain an API key.
+    Analyze websites and retrieve performance, SEO,
+    accessibility, best-practice and other website
+    audit data.
   </p>
 
-  <ol>
+  <a
+    class="web-audit"
+    href="https://web-audit-api-kappa.vercel.app"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Open WebAudit
+  </a>
 
+
+  <h2>Getting Started</h2>
+
+  <ol>
     <li>
       Open the
       <a
-        href="http://localhost:4000"
+        href="https://web-audit-api-kappa.vercel.app"
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -201,11 +149,11 @@ export const doc = `
     </li>
 
     <li>
-      Create an account or sign in.
+      Create a developer account.
     </li>
 
     <li>
-      Verify your email address.
+      Store your Developer ID and Developer Secret securely.
     </li>
 
     <li>
@@ -213,40 +161,41 @@ export const doc = `
     </li>
 
     <li>
-      Click <strong>Generate New Key</strong>.
+      Generate an API key.
     </li>
 
     <li>
       Copy your API key and store it securely.
     </li>
-
   </ol>
 
 
-  <div class="note">
-
+  <div class="warning">
     <strong>Security:</strong>
-
     Keep your API key secret.
     Do not expose it in frontend JavaScript,
     public GitHub repositories, or URLs.
-
   </div>
 
 
   <h2>Authentication</h2>
 
   <p>
-    Protected endpoints require an API key.
-    Send the key using the HTTP Authorization header.
+    Developer endpoints use two headers:
   </p>
 
-  <pre>Authorization: Bearer YOUR_API_KEY</pre>
+  <pre>X-Developer-ID: YOUR_DEVELOPER_ID
+X-Developer-Secret: YOUR_DEVELOPER_SECRET</pre>
 
   <p>
-    Replace <code>YOUR_API_KEY</code> with the key
-    generated from your WebAudit dashboard.
+    API endpoints that perform audits or access
+    API history use:
   </p>
+
+  <pre>X-API-Key: wa_live_YOUR_API_KEY</pre>
+
+
+  <h2>Endpoints</h2>
 
 
   <div class="endpoint">
@@ -258,7 +207,7 @@ export const doc = `
 
     <p>
       Check whether the WebAudit API is running.
-      This endpoint does not require an API key.
+      This endpoint does not require authentication.
     </p>
 
     <pre>curl https://webauditapi.onrender.com/api/v1/health</pre>
@@ -270,16 +219,15 @@ export const doc = `
 
     <h2>
       <span class="method">GET</span>
-      /api/v1/history
+      /api/v1/info
     </h2>
 
     <p>
-      Retrieve all website audits associated with
-      your API key.
+      Retrieve information about the WebAudit API
+      and its available endpoints.
     </p>
 
-    <pre>curl https://webauditapi.onrender.com/api/v1/history \
--H "Authorization: Bearer YOUR_API_KEY"</pre>
+    <pre>curl https://webauditapi.onrender.com/api/v1/info</pre>
 
   </div>
 
@@ -288,20 +236,69 @@ export const doc = `
 
     <h2>
       <span class="method">GET</span>
-      /api/v1/data
+      /api/v1/limits
     </h2>
 
     <p>
-      Retrieve the latest saved audit for a specific URL.
+      Retrieve the API request limits.
     </p>
+
+    <pre>curl https://webauditapi.onrender.com/api/v1/limits</pre>
+
+  </div>
+
+
+  <div class="endpoint">
+
+    <h2>
+      <span class="method">POST</span>
+      /api/v1/developers
+    </h2>
 
     <p>
-      Provide the URL using the
-      <code>url</code> query parameter.
+      Create a developer account.
     </p>
 
-    <pre>curl "https://webauditapi.onrender.com/api/v1/data?url=https://example.com" \
--H "Authorization: Bearer YOUR_API_KEY"</pre>
+    <pre>curl -X POST https://webauditapi.onrender.com/api/v1/developers \\
+-H "Content-Type: application/json" \\
+-d '{"name":"Your Name"}'</pre>
+
+  </div>
+
+
+  <div class="endpoint">
+
+    <h2>
+      <span class="method">POST</span>
+      /api/v1/keys
+    </h2>
+
+    <p>
+      Generate or replace the API key associated
+      with your developer account.
+    </p>
+
+    <pre>curl -X POST https://webauditapi.onrender.com/api/v1/keys \\
+-H "X-Developer-ID: YOUR_DEVELOPER_ID" \\
+-H "X-Developer-Secret: YOUR_DEVELOPER_SECRET"</pre>
+
+  </div>
+
+
+  <div class="endpoint">
+
+    <h2>
+      <span class="method">GET</span>
+      /api/v1/keys
+    </h2>
+
+    <p>
+      Retrieve your currently active API key.
+    </p>
+
+    <pre>curl https://webauditapi.onrender.com/api/v1/keys \\
+-H "X-Developer-ID: YOUR_DEVELOPER_ID" \\
+-H "X-Developer-Secret: YOUR_DEVELOPER_SECRET"</pre>
 
   </div>
 
@@ -315,12 +312,12 @@ export const doc = `
 
     <p>
       Run a new Lighthouse website audit.
-      The result is also saved to your audit history.
+      The result is also saved to your API audit history.
     </p>
 
-    <pre>curl -X POST https://webauditapi.onrender.com/api/v1/analyze \
--H "Content-Type: application/json" \
--H "Authorization: Bearer YOUR_API_KEY" \
+    <pre>curl -X POST https://webauditapi.onrender.com/api/v1/analyze \\
+-H "Content-Type: application/json" \\
+-H "X-API-Key: YOUR_API_KEY" \\
 -d '{"url":"https://example.com"}'</pre>
 
   </div>
@@ -328,66 +325,136 @@ export const doc = `
 
   <div class="endpoint">
 
-    <h2>Example Response</h2>
+    <h2>
+      <span class="method">GET</span>
+      /api/v1/history
+    </h2>
 
-    <pre>{
-  "status": true,
-  "data": {
-    "URL": "https://example.com",
+    <p>
+      Retrieve website audits performed using
+      your API key.
+    </p>
 
-    "Performance": {
-      "Score": 0.92
-    },
-
-    "SEO": {
-      "Score": 1
-    },
-
-    "Accessibility": {
-      "Score": 0.95
-    },
-
-    "Best_Practices": {
-      "Score": 0.9
-    },
-
-    "CLS": {
-      "Score": 0.98,
-      "DisplayValue": "0.02"
-    },
-
-    "LCP": {
-      "Score": 0.9,
-      "DisplayValue": "1.8 s"
-    },
-
-    "FCP": {
-      "Score": 0.95,
-      "DisplayValue": "0.9 s"
-    },
-
-    "SpeedIndex": {
-      "Score": 0.92,
-      "DisplayValue": "1.2 s"
-    },
-
-    "StatusCode": 200,
-    "StatusText": "OK",
-    "Latency": "245.31"
-  }
-}</pre>
+    <pre>curl https://webauditapi.onrender.com/api/v1/history \\
+-H "X-API-Key: YOUR_API_KEY"</pre>
 
   </div>
 
 
-  <h2>Available Endpoints</h2>
+  <div class="endpoint">
 
-  <pre>
-GET  /api/v1/health
-GET  /api/v1/history
-GET  /api/v1/data?url=https://example.com
-POST /api/v1/analyze
-  </pre>
+    <h2>
+      <span class="method">POST</span>
+      /ui/analyze
+    </h2>
+
+    <p>
+      Analyze a website from the WebAudit UI.
+      The result is saved to the developer's UI history.
+    </p>
+
+    <pre>curl -X POST https://webauditapi.onrender.com/ui/analyze \\
+-H "Content-Type: application/json" \\
+-H "X-Developer-ID: YOUR_DEVELOPER_ID" \\
+-H "X-Developer-Secret: YOUR_DEVELOPER_SECRET" \\
+-d '{"url":"https://example.com"}'</pre>
+
+  </div>
+
+
+  <div class="endpoint">
+
+    <h2>
+      <span class="method">GET</span>
+      /ui/history
+    </h2>
+
+    <p>
+      Retrieve audits performed through the WebAudit UI.
+    </p>
+
+    <pre>curl https://webauditapi.onrender.com/ui/history \\
+-H "X-Developer-ID: YOUR_DEVELOPER_ID" \\
+-H "X-Developer-Secret: YOUR_DEVELOPER_SECRET"</pre>
+
+  </div>
+
+
+  <h2>Example Response</h2>
+
+  <pre>{
+  "status": true,
+  "data": {
+    "URL": "https://example.com",
+    "StatusCode": 200,
+    "StatusText": "OK",
+    "Performance": {
+      "Score": 0.92
+    },
+    "SEO": {
+      "Score": 1
+    },
+    "Accessibility": {
+      "Score": 0.95
+    },
+    "Best_Practices": {
+      "Score": 0.9
+    },
+    "CLS": {
+      "Score": 0.98,
+      "DisplayValue": "0.02"
+    },
+    "LCP": {
+      "Score": 0.9,
+      "DisplayValue": "1.8 s"
+    },
+    "FCP": {
+      "Score": 0.95,
+      "DisplayValue": "0.9 s"
+    },
+    "SpeedIndex": {
+      "Score": 0.92,
+      "DisplayValue": "1.2 s"
+    },
+    "Latency": "245.31"
+  }
+}</pre>
+
+
+  <h2>Rate Limits</h2>
+
+  <p>
+    General requests are limited to
+    <strong>5 requests per 15 seconds</strong>.
+  </p>
+
+  <p>
+    Developer API requests are limited to
+    <strong>30 requests per 60 seconds</strong>.
+  </p>
+
+
+  <h2>API Key Security</h2>
+
+  <p>
+    API keys are hashed for authentication and
+    encrypted for secure retrieval.
+  </p>
+
+  <div class="success">
+    Never commit your API key, developer secret,
+    database credentials, or encryption secret
+    to a public repository.
+  </div>
+
+
+  <h2>Documentation</h2>
+
+  <p>
+    This documentation is available at:
+  </p>
+
+  <pre>https://webauditapi.onrender.com/docs</pre>
 
 </div>
 
