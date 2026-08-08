@@ -1,4 +1,5 @@
-import { APIKey, hashAPIKey } from "./db.js";
+import { APIKey } from "./db.js";
+import { hashAPIKey } from "./apiKey.js";
 
 export async function APIAuth(req, res, next) {
   try {
