@@ -15,6 +15,8 @@ export default function Home() {
   const [data, setData] = useState("");
   const [url, setUrl] = useState("");
 
+  const [analyzingUrl, setAnalyzingUrl] = useState("");
+
   const [sidebar, setSidebar] = useState(false);
   const [apiDrawer, setApiDrawer] = useState(false);
 
@@ -29,7 +31,7 @@ export default function Home() {
       const developerSecret =
         localStorage.getItem("developerSecret");
 
-      // User is not authenticated
+      
       if (!developerId || !developerSecret) {
         window.location.href = "/auth";
         return;
@@ -71,12 +73,7 @@ export default function Home() {
         return;
       }
 
-      /*
-       * Authentication failed
-       */
-      if (
-        fetchedData.status === 401
-      ) {
+      if (fetchedData.status === 401) {
         localStorage.removeItem(
           "developerId"
         );
@@ -98,17 +95,17 @@ export default function Home() {
         return;
       }
 
-      /*
-       * Lighthouse could not fetch the website
-       */
+      
       if (jsonData.fetchError) {
-        alert("Invalid URL");
+        alert(
+          jsonData.message ||
+            "Invalid URL or website is unreachable."
+        );
+
         return;
       }
 
-      /*
-       * Other API errors
-       */
+      
       if (!fetchedData.ok) {
         alert(
           jsonData.message ||
@@ -124,13 +121,7 @@ export default function Home() {
         return;
       }
 
-      /*
-       * Do NOT save history here.
-       *
-       * The backend already saves the audit
-       * into MongoDB.
-       */
-
+      
       setData(jsonData);
 
     } catch (err) {
@@ -148,6 +139,9 @@ export default function Home() {
 
     } finally {
       setLoading(false);
+
+      
+      setAnalyzingUrl("");
     }
   }
 
@@ -156,16 +150,22 @@ export default function Home() {
       return;
     }
 
+    const targetUrl = url.trim();
+
     setLoading(true);
     setUrlError(false);
 
-    await FetchData(url.trim());
+    
+    setAnalyzingUrl(targetUrl);
 
+    
     setUrl("");
+
+    await FetchData(targetUrl);
   }
 
   return (
-    <div className="page">
+    <div>
 
       <button
         className="menu-button"
@@ -220,7 +220,46 @@ export default function Home() {
       )}
 
       {isLoading && (
-        <LoadingPage />
+        <>
+          <LoadingPage />
+
+          <div
+            style={{
+              position: "fixed",
+              top: "20px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 10000,
+              width: "min(600px, 90%)",
+              padding: "12px 18px",
+              borderRadius: "12px",
+              background: "rgba(0, 0, 0, 0.75)",
+              color: "white",
+              textAlign: "center",
+              backdropFilter: "blur(10px)",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "0.8rem",
+                opacity: 0.7,
+                marginBottom: "4px",
+              }}
+            >
+              Analyzing
+            </div>
+
+            <div
+              style={{
+                fontFamily: "monospace",
+                fontSize: "0.9rem",
+                wordBreak: "break-all",
+              }}
+            >
+              {analyzingUrl}
+            </div>
+          </div>
+        </>
       )}
 
       <main className="main-content">
