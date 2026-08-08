@@ -37,32 +37,37 @@ export default function History() {
 
   if (error) {
     return (
-      <div className="history-container">
-        {error}
-      </div>
+      <main className="history-container">
+        <p className="history-error">{error}</p>
+      </main>
     );
   }
 
   if (history.length === 0) {
     return (
-      <div className="history-container">
-        <h1 className="history-title">
-          Audit History
-        </h1>
+      <main className="history-container">
+        <div className="history-header">
+          <h1 className="history-title">
+            Audit History
+          </h1>
+        </div>
 
-        <p>No audits yet.</p>
-      </div>
+        <div className="empty-history">
+          <p>No audits yet.</p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="history-container">
+    <main className="history-container">
       <div className="history-header">
         <h1 className="history-title">
           Audit History
         </h1>
 
         <button
+          type="button"
           onClick={clearHistory}
           className="clear-history-button"
         >
@@ -74,12 +79,12 @@ export default function History() {
         {history.map((item, index) => (
           <div
             className="history-card"
-            key={`${item.URL}-${item.Timestamp}-${index}`}
+            key={`${item.URL || "audit"}-${item.Timestamp || index}-${index}`}
           >
             <div className="history-card-top">
               <div className="history-url-container">
                 <h2 className="history-url">
-                  {item.URL}
+                  {item.URL || "Unknown URL"}
                 </h2>
 
                 <p className="history-date">
@@ -127,34 +132,34 @@ export default function History() {
 
             <div className="history-details">
               <span>
-                <strong>LCP</strong>{" "}
+                <strong>LCP</strong>
                 {item.LCP?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>FCP</strong>{" "}
+                <strong>FCP</strong>
                 {item.FCP?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>CLS</strong>{" "}
+                <strong>CLS</strong>
                 {item.CLS?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>Speed Index</strong>{" "}
+                <strong>Speed Index</strong>
                 {item.SpeedIndex?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>Latency</strong>{" "}
+                <strong>Latency</strong>
                 {item.Latency ?? "-"} ms
               </span>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </main>
   );
 }
 

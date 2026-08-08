@@ -32,11 +32,7 @@ export default async function Lighthouse(url) {
     }
 
 
-    /*
-     * --------------------------------------------------
-     * 2. Run PageSpeed / Lighthouse
-     * --------------------------------------------------
-     */
+    
 
     try {
         const apiKey = process.env.PAGESPEED_API_KEY;
@@ -68,11 +64,7 @@ export default async function Lighthouse(url) {
         );
 
 
-        /*
-         * --------------------------------------------------
-         * 3. Check PageSpeed response
-         * --------------------------------------------------
-         */
+        
 
         if (!pageSpeedResponse.ok) {
             const errorText =
@@ -95,11 +87,7 @@ export default async function Lighthouse(url) {
             await pageSpeedResponse.json();
 
 
-        /*
-         * --------------------------------------------------
-         * 4. Get Lighthouse result
-         * --------------------------------------------------
-         */
+        
 
         const result =
             data.lighthouseResult;
@@ -114,11 +102,7 @@ export default async function Lighthouse(url) {
         }
 
 
-        /*
-         * --------------------------------------------------
-         * 5. Runtime error from Lighthouse
-         * --------------------------------------------------
-         */
+       
 
         if (result.runtimeError) {
             return {
@@ -133,11 +117,7 @@ export default async function Lighthouse(url) {
         const audits = result.audits;
 
 
-        /*
-         * --------------------------------------------------
-         * 6. Find performance improvements
-         * --------------------------------------------------
-         */
+       
 
         const performanceCategory =
             result.categories.performance;
@@ -188,11 +168,7 @@ export default async function Lighthouse(url) {
         }
 
 
-        /*
-         * --------------------------------------------------
-         * 7. Return your existing object
-         * --------------------------------------------------
-         */
+        
 
         return {
 
