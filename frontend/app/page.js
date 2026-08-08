@@ -16,6 +16,7 @@ export default function Home() {
   const [url, setUrl] = useState("");
 
   const [analyzingUrl, setAnalyzingUrl] = useState("");
+  const [lastAnalyzedUrl, setLastAnalyzedUrl] = useState("");
 
   const [sidebar, setSidebar] = useState(false);
   const [apiDrawer, setApiDrawer] = useState(false);
@@ -31,7 +32,6 @@ export default function Home() {
       const developerSecret =
         localStorage.getItem("developerSecret");
 
-      
       if (!developerId || !developerSecret) {
         window.location.href = "/auth";
         return;
@@ -95,7 +95,6 @@ export default function Home() {
         return;
       }
 
-      
       if (jsonData.fetchError) {
         alert(
           jsonData.message ||
@@ -105,7 +104,6 @@ export default function Home() {
         return;
       }
 
-      
       if (!fetchedData.ok) {
         alert(
           jsonData.message ||
@@ -121,8 +119,8 @@ export default function Home() {
         return;
       }
 
-      
       setData(jsonData);
+      setLastAnalyzedUrl(url);
 
     } catch (err) {
       console.error(
@@ -139,8 +137,6 @@ export default function Home() {
 
     } finally {
       setLoading(false);
-
-      
       setAnalyzingUrl("");
     }
   }
@@ -155,10 +151,8 @@ export default function Home() {
     setLoading(true);
     setUrlError(false);
 
-    
     setAnalyzingUrl(targetUrl);
 
-    
     setUrl("");
 
     await FetchData(targetUrl);
@@ -231,33 +225,52 @@ export default function Home() {
               transform: "translateX(-50%)",
               zIndex: 10000,
               width: "min(600px, 90%)",
-              padding: "12px 18px",
-              borderRadius: "12px",
-              background: "rgba(0, 0, 0, 0.75)",
+              padding: "16px 20px",
+              borderRadius: "14px",
+              background:
+                "rgba(0, 0, 0, 0.8)",
               color: "white",
               textAlign: "center",
-              backdropFilter: "blur(10px)",
+              backdropFilter:
+                "blur(10px)",
+              boxShadow:
+                "0 10px 30px rgba(0,0,0,.25)",
+              boxSizing: "border-box",
             }}
           >
+
             <div
               style={{
                 fontSize: "0.8rem",
-                opacity: 0.7,
-                marginBottom: "4px",
+                opacity: 0.65,
+                marginBottom: "6px",
               }}
             >
-              Analyzing
+              Currently analyzing
             </div>
 
             <div
               style={{
-                fontFamily: "monospace",
-                fontSize: "0.9rem",
+                fontSize: "1rem",
+                fontWeight: 600,
                 wordBreak: "break-all",
+                fontFamily: "monospace",
               }}
             >
               {analyzingUrl}
             </div>
+
+            <div
+              style={{
+                fontSize: "0.78rem",
+                opacity: 0.65,
+                marginTop: "8px",
+              }}
+            >
+              Running Lighthouse audit.
+              This may take some time.
+            </div>
+
           </div>
         </>
       )}
@@ -305,6 +318,51 @@ export default function Home() {
           </span>
 
         </div>
+
+        {lastAnalyzedUrl &&
+          !isLoading && (
+            <div
+              style={{
+                width: "100%",
+                maxWidth: "900px",
+                margin:
+                  "0 auto 20px",
+                padding:
+                  "14px 18px",
+                borderRadius: "12px",
+                background:
+                  "rgba(255,255,255,0.06)",
+                border:
+                  "1px solid rgba(255,255,255,0.1)",
+                boxSizing:
+                  "border-box",
+              }}
+            >
+
+              <div
+                style={{
+                  fontSize: "0.75rem",
+                  opacity: 0.6,
+                  marginBottom: "5px",
+                }}
+              >
+                Audited URL
+              </div>
+
+              <div
+                style={{
+                  fontFamily:
+                    "monospace",
+                  fontSize: "0.9rem",
+                  wordBreak:
+                    "break-all",
+                }}
+              >
+                {lastAnalyzedUrl}
+              </div>
+
+            </div>
+          )}
 
         <Echart
           dataFetched={
