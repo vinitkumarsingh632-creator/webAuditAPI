@@ -7,9 +7,18 @@ export default async function Lighthouse(url) {
    
 
     try {
-        const start = performance.now();
+        console.log("1. Starting website fetch:", url);
 
-        response = await fetch(url);
+const start = performance.now();
+
+response = await fetch(url);
+
+console.log(
+  "2. Website fetch finished:",
+  ((performance.now() - start) / 1000).toFixed(2),
+  "seconds"
+);
+
 
         const end = performance.now();
 
