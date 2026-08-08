@@ -183,7 +183,7 @@ app.get("/", (req, res) => {
 
   if (!token) {
     return res.redirect(
-      "http://localhost:3000/auth"
+      "https://web-audit-api-kappa.vercel.app//auth"
     );
   }
 
@@ -191,13 +191,13 @@ app.get("/", (req, res) => {
     Verify(token);
 
     return res.redirect(
-      "http://localhost:3000"
+      "https://web-audit-api-kappa.vercel.app/"
     );
   } catch (err) {
     console.error(err);
 
     return res.redirect(
-      "http://localhost:3000/auth"
+      "https://web-audit-api-kappa.vercel.app//auth"
     );
   }
 });
@@ -581,7 +581,7 @@ app.post(
         message:
           "OTP verified successfully.",
         redirect:
-          "http://localhost:4000",
+          "https://webauditapi.onrender.com",
       });
     } catch (err) {
       console.error(err);
