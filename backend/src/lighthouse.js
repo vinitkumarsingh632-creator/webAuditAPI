@@ -68,9 +68,19 @@ console.log(
         params.append("category", "best-practices");
 
 
-        const pageSpeedResponse = await fetch(
-            `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`
-        );
+       console.log("3. Starting PageSpeed");
+
+const pageSpeedStart = performance.now();
+
+const pageSpeedResponse = await fetch(
+  `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`
+);
+
+console.log(
+  "4. PageSpeed finished:",
+  ((performance.now() - pageSpeedStart) / 1000).toFixed(2),
+  "seconds"
+);
 
 
         
