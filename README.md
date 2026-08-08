@@ -68,6 +68,7 @@ Create a `.env` file in the backend:
 PORT=5000
 DB_URI=your_mongodb_connection_string
 API_KEY_ENCRYPTION_SECRET=your_secret
+PAGESPEED_API_KEY=pagespeed_api_key
 ```
 
 Never commit secrets to Git or expose them in frontend code.
