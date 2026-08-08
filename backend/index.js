@@ -22,7 +22,9 @@ dotenv.config({
 });
 
 const app = express();
+const app = express();
 
+app.set("trust proxy", 1);
 app.use(
   cors({
     origin: "https://web-audit-api-kappa.vercel.app",
