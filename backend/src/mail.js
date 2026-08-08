@@ -1,25 +1,17 @@
-import dns from "node:dns";
 import nodemailer from "nodemailer";
 
-dns.setDefaultResultOrder("ipv4first");
-
-dns.lookup("smtp.gmail.com", { all: true }, (err, addresses) => {
-  if (err) {
-    console.error("DNS ERROR:", err);
-    return;
-  }
-
-  console.log("GMAIL DNS:", addresses);
-});
-
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
+  host: "142.250.107.108",
   port: 587,
   secure: false,
 
   auth: {
     user: process.env.EMAIL,
     pass: process.env.APP_PASSWORD,
+  },
+
+  tls: {
+    servername: "smtp.gmail.com",
   },
 
   connectionTimeout: 10000,
