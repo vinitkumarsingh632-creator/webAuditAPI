@@ -18,7 +18,7 @@ export default function Page() {
     try {
       const endpoint = otpSent ? '/otp' : '/'
 
-      const res = await fetch(`http://localhost:4000/auth${endpoint}`, {
+      const res = await fetch(`https://webauditapi.onrender.com/auth${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

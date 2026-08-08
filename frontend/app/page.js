@@ -1,89 +1,187 @@
 "use client";
-import statusMessage from "./status";
+
+import "./index.css";
+
 import LoadingPage from "../Component/Loading";
 import Navbar from "../Component/Navbar";
 import APIDrawer from "../Component/APIDrawer";
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import { Menu, X, Search } from "lucide-react";
+
+import Echart from "../Component/Echart";
+
 export default function Home() {
+  const [data, setData] = useState("");
   const [url, setUrl] = useState("");
+
   const [sidebar, setSidebar] = useState(false);
-  const [apiDrawer,setApiDrawer] = useState(false)
+  const [apiDrawer, setApiDrawer] = useState(false);
+
   const [urlError, setUrlError] = useState(false);
   const [isLoading, setLoading] = useState(false);
+
   async function FetchData(url) {
     try {
-        const data = await fetch("http://localhost:4000/ui/analyze", {
-        method: "post",
-        body: JSON.stringify({ url }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-      setLoading(false)
-      const jsonData = await data.json()
-      if(jsonData.fetchError) return alert('Invalid URL')
-        console.log(jsonData)
-      
-    } catch {
-      setLoading(false)
-        setUrlError(true);
-        
-      alert('Error Occurred');
+      const fetchedData = await fetch(
+        "https://webauditapi.onrender.com/ui/analyze",
+        {
+          method: "POST",
+          body: JSON.stringify({ url }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+
+      const jsonData = await fetchedData.json();
+
+      setLoading(false);
+
+      if (jsonData.fetchError) {
+        alert("Invalid URL");
+        return;
+      }
+
+      console.log(jsonData);
+
+      setData(jsonData);
+    } catch (err) {
+      console.error(err);
+
+      setLoading(false);
+      setUrlError(true);
+
+      alert("Error Occurred");
     }
-    
+  }
+
+  function SearchWebsite() {
+    if (!url.trim()) return;
+
+    setLoading(true);
+
+    FetchData(url);
+
+    setUrl("");
   }
 
   return (
-    <div>
-      {apiDrawer?<APIDrawer/>:undefined}
-      {sidebar?<Navbar sidebar={setSidebar} apiDrawer={setApiDrawer}/>:undefined}
-      {isLoading ?<LoadingPage/>:undefined}
-      <header style={style.header}>
-        {sidebar ? (
-          <X size={30}  style={{position:'relative',zIndex:100}} color="white" onClick={() => setSidebar(false)} />
-        ) : (
-          <Menu color="white" size={30} onClick={() => setSidebar(true)} />
-        )}
-        <input
-          type="text"
-          style={style.input}
-          placeholder="Enter the URL"
-          size={20}
-          value={url}
-          onChange={(event) => setUrl(event.target.value)}
+    <div className="page">
+
+      {/* MENU */}
+
+      <button
+        className="menu-button"
+        onClick={() => setSidebar(true)}
+      >
+        <Menu size={22} />
+      </button>
+
+
+      {/* SIDEBAR */}
+
+      {sidebar && (
+        <>
+          <div
+            className="sidebar-overlay"
+            onClick={() => setSidebar(false)}
+          />
+
+          <aside className="sidebar">
+
+            <div className="sidebar-top">
+
+              <h2>WebAudit</h2>
+
+              <button
+                className="close-button"
+                onClick={() => setSidebar(false)}
+              >
+                <X size={20} />
+              </button>
+
+            </div>
+
+            <Navbar
+              sidebar={setSidebar}
+              apiDrawer={setApiDrawer}
+            />
+
+          </aside>
+        </>
+      )}
+
+
+      {/* API DRAWER */}
+
+      {apiDrawer && (
+        <APIDrawer
+          close={() => setApiDrawer(false)}
         />
-        <Search
-          size={30}
-          style={style.search}
-          color="white"
-          width={30}
-          strokeWidth={4}
-          onClick={() => {
-            setLoading(true)
-            FetchData(url);
-            setUrl("");
-           
-          }}
+      )}
+
+
+      {/* LOADING */}
+
+      {isLoading && <LoadingPage />}
+
+
+      {/* MAIN PAGE */}
+
+      <main className="main-content">
+
+        <div className="search-container">
+
+          <p className="search-help">
+            Enter a website URL to analyze its performance,
+            SEO, accessibility, and more.
+          </p>
+
+
+          <div className="search-box">
+
+            <input
+              type="url"
+              className="search-input"
+              placeholder="https://example.com"
+              value={url}
+              onChange={(event) =>
+                setUrl(event.target.value)
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  SearchWebsite();
+                }
+              }}
+            />
+
+
+            <Search
+              size={22}
+              className="search-icon"
+              onClick={SearchWebsite}
+            />
+
+          </div>
+
+
+          <span className="search-example">
+            Try: https://example.com
+          </span>
+
+        </div>
+
+
+        {/* RESULTS */}
+
+        <Echart
+          dataFetched={data ? data : "-"}
         />
 
-      </header>
+      </main>
+
     </div>
   );
 }
-const style = {
-  header: {
-    display: "flex",
-    marginTop: "1rem",
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  input: {
-    borderRadius: "20px",
-    fontSize: "1.2rem",
-    width: "50%",
-    paddingLeft: "1rem",
-    textAlign:'center'
-  },
-};

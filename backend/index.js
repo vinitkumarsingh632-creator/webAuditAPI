@@ -24,7 +24,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "https://web-audit-api-kappa.vercel.app/",
     credentials: true,
   })
 );

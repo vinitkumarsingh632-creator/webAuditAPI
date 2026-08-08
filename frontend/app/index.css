@@ -1,0 +1,379 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  background: #05051f;
+}
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  background: #05051f;
+  color: white;
+}
+
+
+/* =================================
+   MENU BUTTON
+================================= */
+
+.menu-button {
+  position: fixed;
+
+  top: 16px;
+  left: 16px;
+
+  width: 38px;
+  height: 38px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9px;
+
+  background: rgba(255, 255, 255, 0.07);
+
+  color: white;
+
+  cursor: pointer;
+
+  z-index: 2000;
+}
+
+.menu-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+
+/* =================================
+   MAIN CONTENT
+================================= */
+
+.main-content {
+  width: 100%;
+  min-height: 100vh;
+
+  padding: 85px 20px 40px;
+}
+
+
+/* =================================
+   SEARCH CONTAINER
+================================= */
+
+.search-container {
+  width: min(700px, 100%);
+
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+/* =================================
+   HELP TEXT
+================================= */
+
+.search-help {
+  width: 100%;
+
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.72);
+
+  text-align: center;
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+
+/* =================================
+   SEARCH BOX
+================================= */
+
+.search-box {
+  width: 100%;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 14px;
+
+  border-radius: 23px;
+
+  background: rgba(255, 255, 255, 0.07);
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+
+/* =================================
+   INPUT
+================================= */
+
+.search-input {
+  flex: 1;
+
+  width: 0;
+  min-width: 0;
+  height: 100%;
+
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: white;
+
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+
+/* =================================
+   SEARCH ICON
+================================= */
+
+.search-icon {
+  flex-shrink: 0;
+
+  color: white;
+
+  cursor: pointer;
+}
+
+
+/* =================================
+   EXAMPLE
+================================= */
+
+.search-example {
+  max-width: 100%;
+
+  color: rgba(255, 255, 255, 0.4);
+
+  font-size: 12px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =================================
+   SIDEBAR
+================================= */
+
+.sidebar {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
+  width: 300px;
+  height: 100vh;
+
+  padding: 0;
+
+  background: #15152d;
+
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+
+  box-shadow: 10px 0 40px rgba(0, 0, 0, 0.4);
+
+  z-index: 3000;
+
+  overflow-y: auto;
+
+  animation: sidebarIn 0.2s ease-out;
+}
+
+
+/* =================================
+   SIDEBAR HEADER
+================================= */
+
+.sidebar-top {
+  width: 100%;
+  height: 64px;
+
+  padding: 0 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-top h2 {
+  margin: 0;
+
+  font-size: 1.15rem;
+}
+
+
+/* =================================
+   CLOSE BUTTON
+================================= */
+
+.close-button {
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.06);
+
+  color: white;
+
+  cursor: pointer;
+}
+
+
+/* =================================
+   OVERLAY
+================================= */
+
+.sidebar-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.55);
+
+  backdrop-filter: blur(3px);
+
+  z-index: 2500;
+}
+
+
+/* =================================
+   SIDEBAR ANIMATION
+================================= */
+
+@keyframes sidebarIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+
+/* =================================
+   TABLET
+================================= */
+
+@media (max-width: 768px) {
+
+  .main-content {
+    padding: 80px 18px 35px;
+  }
+
+  .search-container {
+    width: min(620px, 100%);
+  }
+
+  .sidebar {
+    width: 300px;
+  }
+}
+
+
+/* =================================
+   MOBILE
+================================= */
+
+@media (max-width: 480px) {
+
+  .menu-button {
+    top: 12px;
+    left: 12px;
+
+    width: 36px;
+    height: 36px;
+  }
+
+  .main-content {
+    padding: 70px 12px 30px;
+  }
+
+  .search-help {
+    font-size: 13px;
+  }
+
+  .search-box {
+    height: 44px;
+
+    padding: 0 12px;
+  }
+
+  .search-input {
+    font-size: 13px;
+  }
+
+  .search-example {
+    font-size: 11px;
+  }
+
+  .sidebar {
+    width: min(300px, 82vw);
+  }
+}
+
+
+/* =================================
+   VERY SMALL PHONE
+================================= */
+
+@media (max-width: 350px) {
+
+  .main-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .search-help {
+    font-size: 12px;
+  }
+
+  .search-input {
+    font-size: 12px;
+  }
+}

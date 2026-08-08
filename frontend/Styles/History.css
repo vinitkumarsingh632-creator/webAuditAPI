@@ -1,0 +1,322 @@
+* {
+  box-sizing: border-box;
+}
+
+.history-page {
+  min-height: 100vh;
+  width: 100%;
+  padding: 40px 24px;
+  background: #05051f;
+  color: white;
+}
+
+.history-container {
+  width: min(1000px, 100%);
+  margin: 0 auto;
+}
+
+.history-title {
+  margin: 0 0 30px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.history-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.history-card {
+  width: 100%;
+  min-width: 0;
+
+  padding: 20px;
+
+  border-radius: 18px;
+
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  backdrop-filter: blur(12px);
+}
+
+/* =========================
+   CARD TOP
+========================= */
+
+.history-card-top {
+  width: 100%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  margin-bottom: 20px;
+}
+
+.history-url-container {
+  min-width: 0;
+  flex: 1;
+}
+
+.history-url {
+  margin: 0;
+
+  font-size: 1.05rem;
+  font-weight: 600;
+
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.history-date {
+  margin: 6px 0 0;
+
+  color: rgba(255, 255, 255, 0.45);
+
+  font-size: 0.8rem;
+}
+
+.history-status {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  border-radius: 8px;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.status-error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+/* =========================
+   METRICS
+========================= */
+
+.history-metrics {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-bottom: 15px;
+}
+
+.history-metric {
+  min-width: 0;
+
+  padding: 12px;
+
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.05);
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.history-metric-name {
+  color: rgba(255, 255, 255, 0.5);
+
+  font-size: 0.75rem;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-metric-value {
+  font-size: 1.2rem;
+}
+
+/* =========================
+   DETAILS
+========================= */
+
+.history-details {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 8px 18px;
+
+  color: rgba(255, 255, 255, 0.6);
+
+  font-size: 0.8rem;
+}
+
+.history-details span {
+  display: flex;
+  gap: 5px;
+}
+
+.history-details strong {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* =========================
+   CENTER
+========================= */
+
+.history-center {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  color: white;
+
+  background: #05051f;
+
+  text-align: center;
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 768px) {
+
+  .history-page {
+    padding: 80px 18px 30px;
+  }
+
+  .history-title {
+    font-size: 1.7rem;
+    margin-bottom: 22px;
+  }
+
+  .history-card {
+    padding: 16px;
+  }
+
+  .history-metrics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 480px) {
+
+  .history-page {
+    padding: 70px 12px 25px;
+  }
+
+  .history-title {
+    font-size: 1.4rem;
+  }
+
+  .history-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .history-card-top {
+    gap: 10px;
+  }
+
+  .history-url {
+    font-size: 0.9rem;
+  }
+
+  .history-date {
+    font-size: 0.7rem;
+  }
+
+  .history-status {
+    padding: 5px 8px;
+    font-size: 0.75rem;
+  }
+
+  .history-metrics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+  }
+
+  .history-metric {
+    padding: 10px;
+  }
+
+  .history-metric-name {
+    font-size: 0.68rem;
+  }
+
+  .history-metric-value {
+    font-size: 1rem;
+  }
+
+  .history-details {
+    display: grid;
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+
+    font-size: 0.7rem;
+  }
+
+  .history-details span {
+    min-width: 0;
+    display: block;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+}
+
+/* =========================
+   VERY SMALL
+========================= */
+
+@media (max-width: 350px) {
+
+  .history-page {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .history-card {
+    padding: 11px;
+  }
+
+  .history-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .history-details {
+    grid-template-columns: 1fr;
+  }
+
+}
