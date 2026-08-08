@@ -1,90 +1,150 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../../Styles/History.css";
 
 export default function History() {
-  const [history, setHistory] = useState(() => {
-    try {
-      const storedHistory = localStorage.getItem("auditHistory");
-
-      if (!storedHistory) {
-        return [];
-      }
-
-      const parsedHistory = JSON.parse(storedHistory);
-
-      return Array.isArray(parsedHistory)
-        ? parsedHistory
-        : [];
-    } catch (err) {
-      console.error(err);
-      return [];
-    }
-  });
-
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  function clearHistory() {
-    try {
-      localStorage.removeItem("auditHistory");
-      setHistory([]);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to clear history.");
+  useEffect(() => {
+    async function fetchHistory() {
+      try {
+        const developerId =
+          localStorage.getItem("developerId");
+
+        const developerSecret =
+          localStorage.getItem("developerSecret");
+
+        console.log("Developer ID:", developerId);
+        console.log(
+          "Developer Secret exists:",
+          Boolean(developerSecret)
+        );
+
+        if (!developerId || !developerSecret) {
+          window.location.href = "/auth";
+          return;
+        }
+
+        const response = await fetch(
+          "https://webauditapi.onrender.com/ui/history",
+          {
+            method: "GET",
+            headers: {
+              "X-Developer-ID": developerId,
+              "X-Developer-Secret": developerSecret,
+            },
+          }
+        );
+
+        const text = await response.text();
+
+        console.log("History status:", response.status);
+        console.log("History response:", text);
+
+        let data;
+
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(
+            "Backend returned invalid JSON."
+          );
+        }
+
+        if (response.status === 401) {
+          localStorage.removeItem("developerId");
+          localStorage.removeItem("developerName");
+          localStorage.removeItem("developerSecret");
+
+          window.location.href = "/auth";
+          return;
+        }
+
+        if (!response.ok || !data.status) {
+          throw new Error(
+            data.message ||
+              "Failed to fetch history."
+          );
+        }
+
+        setHistory(data.History || []);
+      } catch (err) {
+        console.error(
+          "History error:",
+          err
+        );
+
+        setError(
+          err.message ||
+            "Failed to connect to server."
+        );
+      } finally {
+        setLoading(false);
+      }
     }
+
+    fetchHistory();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="history-container">
+        <h1 className="history-title">
+          Audit History
+        </h1>
+
+        <p>Loading history...</p>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <main className="history-container">
-        <p className="history-error">{error}</p>
-      </main>
+      <div className="history-container">
+        <h1 className="history-title">
+          Audit History
+        </h1>
+
+        <p className="history-error">
+          {error}
+        </p>
+      </div>
     );
   }
 
   if (history.length === 0) {
     return (
-      <main className="history-container">
-        <div className="history-header">
-          <h1 className="history-title">
-            Audit History
-          </h1>
-        </div>
-
-        <div className="empty-history">
-          <p>No audits yet.</p>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="history-container">
-      <div className="history-header">
+      <div className="history-container">
         <h1 className="history-title">
           Audit History
         </h1>
 
-        <button
-          type="button"
-          onClick={clearHistory}
-          className="clear-history-button"
-        >
-          Clear History
-        </button>
+        <p>No audits yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="history-container">
+      <div className="history-header">
+        <h1 className="history-title">
+          Audit History
+        </h1>
       </div>
 
       <div className="history-list">
-        {history.map((item, index) => (
+        {history.map((item) => (
           <div
             className="history-card"
-            key={`${item.URL || "audit"}-${item.Timestamp || index}-${index}`}
+            key={item._id}
           >
             <div className="history-card-top">
               <div className="history-url-container">
                 <h2 className="history-url">
-                  {item.URL || "Unknown URL"}
+                  {item.URL}
                 </h2>
 
                 <p className="history-date">
@@ -121,45 +181,49 @@ export default function History() {
 
               <Metric
                 name="Accessibility"
-                value={item.Accessibility?.Score}
+                value={
+                  item.Accessibility?.Score
+                }
               />
 
               <Metric
                 name="Best Practices"
-                value={item.Best_Practices?.Score}
+                value={
+                  item.Best_Practices?.Score
+                }
               />
             </div>
 
             <div className="history-details">
               <span>
-                <strong>LCP</strong>
+                <strong>LCP</strong>{" "}
                 {item.LCP?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>FCP</strong>
+                <strong>FCP</strong>{" "}
                 {item.FCP?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>CLS</strong>
+                <strong>CLS</strong>{" "}
                 {item.CLS?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>Speed Index</strong>
+                <strong>Speed Index</strong>{" "}
                 {item.SpeedIndex?.DisplayValue || "-"}
               </span>
 
               <span>
-                <strong>Latency</strong>
+                <strong>Latency</strong>{" "}
                 {item.Latency ?? "-"} ms
               </span>
             </div>
           </div>
         ))}
       </div>
-    </main>
+    </div>
   );
 }
 
