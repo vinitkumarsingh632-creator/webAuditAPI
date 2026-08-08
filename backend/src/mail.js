@@ -1,26 +1,18 @@
 import nodemailer from "nodemailer";
-console.log(process.env.APP_PASSWORD)
+
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false,
 
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 100,
-
   auth: {
     user: process.env.EMAIL,
     pass: process.env.APP_PASSWORD,
   },
-});
 
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("SMTP ERROR:", error);
-  } else {
-    console.log("SMTP READY");
-  }
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 export default transporter;
