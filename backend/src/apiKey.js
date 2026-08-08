@@ -4,9 +4,18 @@ import { APIKey } from "./db.js";
 const ALGORITHM = "aes-256-gcm";
 
 function getEncryptionKey() {
+  const secret =
+    process.env.API_KEY_ENCRYPTION_SECRET;
+
+  if (!secret) {
+    throw new Error(
+      "API_KEY_ENCRYPTION_SECRET is missing"
+    );
+  }
+
   return crypto
     .createHash("sha256")
-    .update(process.env.API_KEY_ENCRYPTION_SECRET)
+    .update(secret)
     .digest();
 }
 
