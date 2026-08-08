@@ -20,12 +20,14 @@ WebAudit is a website auditing platform that analyzes websites for performance, 
 ## Tech Stack
 
 ### Frontend
+
 - Next.js
 - React
 - Lucide React
 - ECharts
 
 ### Backend
+
 - Node.js
 - Express.js
 - Lighthouse
@@ -38,19 +40,19 @@ WebAudit is a website auditing platform that analyzes websites for performance, 
 
 ## API Endpoints
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/v1/health` | API health |
-| GET | `/api/v1/info` | API information |
-| GET | `/api/v1/limits` | Rate limits |
-| POST | `/api/v1/developers` | Create developer |
-| POST | `/api/v1/keys` | Generate/update API key |
-| GET | `/api/v1/keys` | Retrieve API key |
-| POST | `/api/v1/analyze` | Analyze a website |
-| GET | `/api/v1/history` | API audit history |
-| POST | `/ui/analyze` | UI website analysis |
-| GET | `/ui/history` | UI audit history |
-| GET | `/docs` | API documentation |
+| Method | Endpoint             | Purpose                 |
+| ------ | -------------------- | ----------------------- |
+| GET    | `/api/v1/health`     | API health              |
+| GET    | `/api/v1/info`       | API information         |
+| GET    | `/api/v1/limits`     | Rate limits             |
+| POST   | `/api/v1/developers` | Create developer        |
+| POST   | `/api/v1/keys`       | Generate/update API key |
+| GET    | `/api/v1/keys`       | Retrieve API key        |
+| POST   | `/api/v1/analyze`    | Analyze a website       |
+| GET    | `/api/v1/history`    | API audit history       |
+| POST   | `/ui/analyze`        | UI website analysis     |
+| GET    | `/ui/history`        | UI audit history        |
+| GET    | `/docs`              | API documentation       |
 
 ## Authentication
 
@@ -68,6 +70,7 @@ Create a `.env` file in the backend:
 PORT=5000
 DB_URI=your_mongodb_connection_string
 API_KEY_ENCRYPTION_SECRET=your_secret
+PAGESPEED_API_KEY=32-bytes
 ```
 
 Never commit secrets to Git or expose them in frontend code.
@@ -149,7 +152,3 @@ curl -X POST https://webauditapi.onrender.com/api/v1/analyze   -H "Content-Type:
 ## Deployment
 
 The project uses a Next.js frontend and an Express backend. Production environment variables must be configured on the hosting provider.
-
-## License
-
-Add your chosen license before publishing the repository.
