@@ -9,7 +9,7 @@ export default function Navbar({ sidebar, apiDrawer }) {
   return (
     <div className="navbar">
 
-      <h2 className="navbar-logo">
+      <h2 className="navbar-logo" style={{color:'white'}}>
         WebAudit
       </h2>
 
