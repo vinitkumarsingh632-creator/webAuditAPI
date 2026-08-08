@@ -58,6 +58,20 @@ const APIKeySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    encryptedKey: {
+  type: String,
+  required: true,
+},
+
+encryptionIv: {
+  type: String,
+  required: true,
+},
+
+encryptionAuthTag: {
+  type: String,
+  required: true,
+},
   }
 );
 

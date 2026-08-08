@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Copy,
   KeyRound,
@@ -9,7 +9,86 @@ import {
 
 export default function APIDrawer({ close }) {
   const [apiKey, setApiKey] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    async function fetchAPIKey() {
+      try {
+        const developerId =
+          localStorage.getItem("developerId");
+
+        const developerSecret =
+          localStorage.getItem(
+            "developerSecret"
+          );
+
+        if (!developerId || !developerSecret) {
+          window.location.href = "/auth";
+          return;
+        }
+
+        const response = await fetch(
+          "https://webauditapi.onrender.com/api/v1/keys",
+          {
+            method: "GET",
+            headers: {
+              "X-Developer-ID": developerId,
+              "X-Developer-Secret":
+                developerSecret,
+            },
+          }
+        );
+
+        const data = await response.json();
+
+        console.log(
+          "API KEY RESPONSE:",
+          data
+        );
+
+        if (response.status === 401) {
+          localStorage.removeItem(
+            "developerId"
+          );
+
+          localStorage.removeItem(
+            "developerName"
+          );
+
+          localStorage.removeItem(
+            "developerSecret"
+          );
+
+          window.location.href = "/auth";
+          return;
+        }
+
+        if (response.status === 404) {
+          setApiKey(null);
+          return;
+        }
+
+        if (!response.ok || !data.status) {
+          throw new Error(
+            data.message ||
+              "Failed to fetch API key."
+          );
+        }
+
+        setApiKey(data.APIKey);
+      } catch (err) {
+        console.error(
+          "Failed to fetch API key:",
+          err
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAPIKey();
+  }, []);
 
   async function generateAPIKey() {
     try {
@@ -19,13 +98,11 @@ export default function APIDrawer({ close }) {
         localStorage.getItem("developerId");
 
       const developerSecret =
-        localStorage.getItem("developerSecret");
-
-      if (!developerId || !developerSecret) {
-        alert(
-          "Developer authentication required."
+        localStorage.getItem(
+          "developerSecret"
         );
 
+      if (!developerId || !developerSecret) {
         window.location.href = "/auth";
         return;
       }
@@ -50,22 +127,6 @@ export default function APIDrawer({ close }) {
       );
 
       if (response.status === 401) {
-        localStorage.removeItem(
-          "developerId"
-        );
-
-        localStorage.removeItem(
-          "developerName"
-        );
-
-        localStorage.removeItem(
-          "developerSecret"
-        );
-
-        alert(
-          "Authentication expired. Please create your account again."
-        );
-
         window.location.href = "/auth";
         return;
       }
@@ -75,20 +136,18 @@ export default function APIDrawer({ close }) {
           data.message ||
             "Failed to generate API key."
         );
-
         return;
       }
 
       setApiKey(data.apiKey);
-
     } catch (err) {
       console.error(
-        "API key error:",
+        "Generate API key error:",
         err
       );
 
       alert(
-        "Failed to connect to server."
+        "Failed to generate API key."
       );
     } finally {
       setGenerating(false);
@@ -118,7 +177,6 @@ export default function APIDrawer({ close }) {
   return (
     <div style={style.overlay}>
       <div style={style.drawer}>
-
         <div style={style.header}>
           <div style={style.heading}>
             <KeyRound size={21} />
@@ -141,8 +199,11 @@ export default function APIDrawer({ close }) {
 
         <div style={style.keyBox}>
           <span style={style.key}>
-            {apiKey ||
-              "No API key generated"}
+            {loading
+              ? "Checking..."
+              : apiKey
+              ? apiKey
+              : "No API key generated"}
           </span>
 
           {apiKey && (
@@ -157,18 +218,29 @@ export default function APIDrawer({ close }) {
           )}
         </div>
 
-        <button
-          style={style.button}
-          onClick={generateAPIKey}
-          disabled={generating}
-        >
-          {generating
-            ? "Generating..."
-            : apiKey
-            ? "Generate New Key"
-            : "Generate API Key"}
-        </button>
+        {!loading && !apiKey && (
+          <button
+            style={style.button}
+            onClick={generateAPIKey}
+            disabled={generating}
+          >
+            {generating
+              ? "Generating..."
+              : "Generate API Key"}
+          </button>
+        )}
 
+        {!loading && apiKey && (
+          <button
+            style={style.button}
+            onClick={generateAPIKey}
+            disabled={generating}
+          >
+            {generating
+              ? "Generating..."
+              : "Generate New Key"}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -178,11 +250,9 @@ const style = {
   overlay: {
     position: "fixed",
     inset: 0,
-    background:
-      "rgba(0,0,0,.35)",
+    background: "rgba(0,0,0,.35)",
     backdropFilter: "blur(6px)",
-    WebkitBackdropFilter:
-      "blur(6px)",
+    WebkitBackdropFilter: "blur(6px)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -195,8 +265,7 @@ const style = {
     background:
       "rgba(255,255,255,.08)",
     backdropFilter: "blur(18px)",
-    WebkitBackdropFilter:
-      "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
     border:
       "1px solid rgba(255,255,255,.12)",
     borderRadius: "22px",
@@ -208,8 +277,7 @@ const style = {
 
   header: {
     display: "flex",
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "20px",
   },
@@ -223,8 +291,7 @@ const style = {
   },
 
   description: {
-    color:
-      "rgba(255,255,255,.75)",
+    color: "rgba(255,255,255,.75)",
     lineHeight: 1.6,
     marginBottom: "20px",
     fontSize: ".95rem",
@@ -233,8 +300,7 @@ const style = {
   keyBox: {
     width: "100%",
     display: "flex",
-    justifyContent:
-      "space-between",
+    justifyContent: "space-between",
     alignItems: "center",
     gap: "10px",
     background:
