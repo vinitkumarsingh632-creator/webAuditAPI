@@ -20,14 +20,12 @@ WebAudit is a website auditing platform that analyzes websites for performance, 
 ## Tech Stack
 
 ### Frontend
-
 - Next.js
 - React
 - Lucide React
 - ECharts
 
 ### Backend
-
 - Node.js
 - Express.js
 - Lighthouse
@@ -40,19 +38,19 @@ WebAudit is a website auditing platform that analyzes websites for performance, 
 
 ## API Endpoints
 
-| Method | Endpoint             | Purpose                 |
-| ------ | -------------------- | ----------------------- |
-| GET    | `/api/v1/health`     | API health              |
-| GET    | `/api/v1/info`       | API information         |
-| GET    | `/api/v1/limits`     | Rate limits             |
-| POST   | `/api/v1/developers` | Create developer        |
-| POST   | `/api/v1/keys`       | Generate/update API key |
-| GET    | `/api/v1/keys`       | Retrieve API key        |
-| POST   | `/api/v1/analyze`    | Analyze a website       |
-| GET    | `/api/v1/history`    | API audit history       |
-| POST   | `/ui/analyze`        | UI website analysis     |
-| GET    | `/ui/history`        | UI audit history        |
-| GET    | `/docs`              | API documentation       |
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/v1/health` | API health |
+| GET | `/api/v1/info` | API information |
+| GET | `/api/v1/limits` | Rate limits |
+| POST | `/api/v1/developers` | Create developer |
+| POST | `/api/v1/keys` | Generate/update API key |
+| GET | `/api/v1/keys` | Retrieve API key |
+| POST | `/api/v1/analyze` | Analyze a website |
+| GET | `/api/v1/history` | API audit history |
+| POST | `/ui/analyze` | UI website analysis |
+| GET | `/ui/history` | UI audit history |
+| GET | `/docs` | API documentation |
 
 ## Authentication
 
@@ -70,7 +68,6 @@ Create a `.env` file in the backend:
 PORT=5000
 DB_URI=your_mongodb_connection_string
 API_KEY_ENCRYPTION_SECRET=your_secret
-PAGESPEED_API_KEY=32-bytes
 ```
 
 Never commit secrets to Git or expose them in frontend code.
@@ -135,11 +132,186 @@ npm install
 npm run dev
 ```
 
-## Example API Request
+## API Request Examples
+
+Base URL:
+
+```text
+https://webauditapi.onrender.com
+```
+
+### 1. Health Check
+
+The health endpoint does not require authentication.
 
 ```bash
-curl -X POST https://webauditapi.onrender.com/api/v1/analyze   -H "Content-Type: application/json"   -H "X-API-Key: wa_live_YOUR_API_KEY"   -d '{"url":"https://example.com"}'
+curl -X GET "https://webauditapi.onrender.com/api/v1/health"
 ```
+
+Windows CMD:
+
+```cmd
+curl -X GET "https://webauditapi.onrender.com/api/v1/health"
+```
+
+### 2. API Information
+
+```bash
+curl -X GET "https://webauditapi.onrender.com/api/v1/info"
+```
+
+### 3. Rate Limits
+
+```bash
+curl -X GET "https://webauditapi.onrender.com/api/v1/limits"
+```
+
+### 4. Create a Developer Account
+
+No API key is required to create a developer account.
+
+Request method:
+
+```http
+POST /api/v1/developers
+Content-Type: application/json
+```
+
+Request body:
+
+```json
+{
+  "name": "Your Name"
+}
+```
+
+cURL:
+
+```bash
+curl -X POST "https://webauditapi.onrender.com/api/v1/developers" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Your Name"}'
+```
+
+The response provides the developer ID and developer secret. Store the developer secret securely.
+
+### 5. Generate or Replace an API Key
+
+This endpoint uses developer authentication.
+
+Required headers:
+
+```http
+X-Developer-ID: YOUR_DEVELOPER_ID
+X-Developer-Secret: YOUR_DEVELOPER_SECRET
+```
+
+Request:
+
+```bash
+curl -X POST "https://webauditapi.onrender.com/api/v1/keys" \
+  -H "X-Developer-ID: YOUR_DEVELOPER_ID" \
+  -H "X-Developer-Secret: YOUR_DEVELOPER_SECRET"
+```
+
+Generating a new key updates the existing API-key record for that developer rather than creating another active key.
+
+### 6. Analyze a Website
+
+The analyze endpoint requires an API key.
+
+Required headers:
+
+```http
+Content-Type: application/json
+X-API-Key: YOUR_API_KEY
+```
+
+Required JSON body:
+
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+Linux/macOS:
+
+```bash
+curl -X POST "https://webauditapi.onrender.com/api/v1/analyze" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: wa_live_YOUR_API_KEY" \
+  -d '{"url":"https://example.com"}'
+```
+
+Windows CMD:
+
+```cmd
+curl -X POST "https://webauditapi.onrender.com/api/v1/analyze" -H "Content-Type: application/json" -H "X-API-Key: wa_live_YOUR_API_KEY" -d "{"url":"https://example.com"}"
+```
+
+PowerShell:
+
+```powershell
+Invoke-RestMethod `
+  -Uri "https://webauditapi.onrender.com/api/v1/analyze" `
+  -Method POST `
+  -Headers @{ "X-API-Key" = "wa_live_YOUR_API_KEY" } `
+  -ContentType "application/json" `
+  -Body (@{ url = "https://example.com" } | ConvertTo-Json)
+```
+
+The URL must be a valid `http://` or `https://` URL.
+
+### 7. Retrieve API Audit History
+
+```bash
+curl -X GET "https://webauditapi.onrender.com/api/v1/history" \
+  -H "X-API-Key: wa_live_YOUR_API_KEY"
+```
+
+### 8. UI Audit Endpoint
+
+The dashboard uses the UI endpoint with developer authentication.
+
+Required headers:
+
+```http
+Content-Type: application/json
+X-Developer-ID: YOUR_DEVELOPER_ID
+X-Developer-Secret: YOUR_DEVELOPER_SECRET
+```
+
+Request body:
+
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+Example:
+
+```bash
+curl -X POST "https://webauditapi.onrender.com/ui/analyze" \
+  -H "Content-Type: application/json" \
+  -H "X-Developer-ID: YOUR_DEVELOPER_ID" \
+  -H "X-Developer-Secret: YOUR_DEVELOPER_SECRET" \
+  -d '{"url":"https://example.com"}'
+```
+
+### Request Summary
+
+| Endpoint | Method | Authentication | Body |
+|---|---|---|---|
+| `/api/v1/health` | GET | None | None |
+| `/api/v1/info` | GET | None | None |
+| `/api/v1/limits` | GET | None | None |
+| `/api/v1/developers` | POST | None | `{"name":"Your Name"}` |
+| `/api/v1/keys` | POST | Developer ID + Developer Secret | None |
+| `/api/v1/analyze` | POST | API Key | `{"url":"https://example.com"}` |
+| `/api/v1/history` | GET | API Key | None |
+| `/ui/analyze` | POST | Developer ID + Developer Secret | `{"url":"https://example.com"}` |
 
 ## Security
 
@@ -152,3 +324,7 @@ curl -X POST https://webauditapi.onrender.com/api/v1/analyze   -H "Content-Type:
 ## Deployment
 
 The project uses a Next.js frontend and an Express backend. Production environment variables must be configured on the hosting provider.
+
+## License
+
+Add your chosen license before publishing the repository.
