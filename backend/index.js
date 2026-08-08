@@ -24,7 +24,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://web-audit-api-kappa.vercel.app/",
+    origin: "https://web-audit-api-kappa.vercel.app",
     credentials: true,
   })
 );
@@ -560,21 +560,12 @@ app.post(
         objectID._id
       );
 
-      res.cookie(
-        "auth_token",
-        token,
-        {
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          maxAge:
-            20 *
-            24 *
-            60 *
-            60 *
-            1000,
-        }
-      );
+      res.cookie("auth_token", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  maxAge: 20 * 24 * 60 * 60 * 1000,
+});
 
       return res.status(200).json({
         status: true,
