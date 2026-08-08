@@ -183,7 +183,7 @@ app.get("/", (req, res) => {
 
   if (!token) {
     return res.redirect(
-      "https://web-audit-api-kappa.vercel.app//auth"
+      "https://web-audit-api-kappa.vercel.app/auth"
     );
   }
 
@@ -197,7 +197,7 @@ app.get("/", (req, res) => {
     console.error(err);
 
     return res.redirect(
-      "https://web-audit-api-kappa.vercel.app//auth"
+      "https://web-audit-api-kappa.vercel.app/auth"
     );
   }
 });
