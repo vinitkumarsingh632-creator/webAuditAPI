@@ -442,48 +442,41 @@ app.post("/auth", async (req, res) => {
       });
     }
 
-    const OTP = Math.floor(
-      100000 + Math.random() * 900000
-    );
+    const OTP = Math.floor(100000 + Math.random() * 900000);
 
-    const expires = new Date(
-      Date.now() + 5 * 60 * 1000
-    );
+    const expires = new Date(Date.now() + 5 * 60 * 1000);
 
-    const html = template.replace(
-      "{{OTP}}",
-      String(OTP)
-    );
+    console.log("1. Request received");
 
     await transporter.sendMail({
       from: process.env.EMAIL,
       to: email,
-      subject:
-        "Verify Your Email - WebOrbit",
-      html,
+      subject: "Verify Your Email - WebOrbit",
+      html: template.replace("{{OTP}}", String(OTP)),
     });
 
+    console.log("2. Email sent");
+
     await otp.findOneAndUpdate(
-      {
-        Email: email,
-      },
+      { Email: email },
       {
         $set: {
           OTP,
           Expires: expires,
         },
       },
-      {
-        upsert: true,
-      }
+      { upsert: true }
     );
+
+    console.log("3. OTP saved");
 
     return res.status(200).json({
       status: true,
       message: "OTP sent successfully.",
     });
+
   } catch (err) {
-    console.error(err);
+    console.error("AUTH ERROR:", err);
 
     return res.status(500).json({
       status: false,
