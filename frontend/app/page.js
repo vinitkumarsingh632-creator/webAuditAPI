@@ -27,14 +27,26 @@ export default function Home() {
         "https://webauditapi.onrender.com/ui/analyze",
         {
           method: "POST",
-          body: JSON.stringify({ url }),
           headers: {
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({ url }),
         }
       );
 
-      const jsonData = await fetchedData.json();
+      const text = await fetchedData.text();
+
+      let jsonData;
+
+      try {
+        jsonData = JSON.parse(text);
+      } catch {
+        console.error("Server response:", text);
+
+        setLoading(false);
+        alert("Server returned an invalid response.");
+        return;
+      }
 
       if (jsonData.fetchError) {
         setLoading(false);
@@ -44,13 +56,17 @@ export default function Home() {
 
       if (!fetchedData.ok) {
         setLoading(false);
+
         alert(
-          jsonData.message || "Failed to analyze website"
+          jsonData.message ||
+            jsonData.error ||
+            "Failed to analyze website"
         );
+
+        console.error("API error:", jsonData);
         return;
       }
 
-      
       const existingHistory = JSON.parse(
         localStorage.getItem("auditHistory") || "[]"
       );
@@ -67,42 +83,37 @@ export default function Home() {
 
       setData(jsonData);
       setLoading(false);
-
     } catch (err) {
-      console.error(err);
+      console.error("Fetch error:", err);
 
       setLoading(false);
       setUrlError(true);
 
-      alert("Error Occurred");
+      alert(err.message || "Error occurred while analyzing website.");
     }
   }
 
   async function SearchWebsite() {
-    if (!url.trim()) return;
+    if (!url.trim()) {
+      return;
+    }
 
     setLoading(true);
     setUrlError(false);
 
-    await FetchData(url);
+    await FetchData(url.trim());
 
     setUrl("");
   }
 
   return (
     <div>
-
-      
-
       <button
         className="menu-button"
         onClick={() => setSidebar(true)}
       >
         <Menu size={22} />
       </button>
-
-
-     
 
       {sidebar && (
         <>
@@ -112,9 +123,7 @@ export default function Home() {
           />
 
           <aside className="sidebar">
-
             <div className="sidebar-top">
-
               <h2>WebAudit</h2>
 
               <button
@@ -123,20 +132,15 @@ export default function Home() {
               >
                 <X size={20} />
               </button>
-
             </div>
 
             <Navbar
               sidebar={setSidebar}
               apiDrawer={setApiDrawer}
             />
-
           </aside>
         </>
       )}
-
-
-      
 
       {apiDrawer && (
         <APIDrawer
@@ -144,26 +148,16 @@ export default function Home() {
         />
       )}
 
-
-   
-
       {isLoading && <LoadingPage />}
 
-
-    
-
       <main className="main-content">
-
         <div className="search-container">
-
           <p className="search-help">
             Enter a website URL to analyze its performance,
             SEO, accessibility, and more.
           </p>
 
-
           <div className="search-box">
-
             <input
               type="url"
               className="search-input"
@@ -185,24 +179,17 @@ export default function Home() {
               className="search-icon"
               onClick={SearchWebsite}
             />
-
           </div>
-
 
           <span className="search-example">
             Try: https://example.com
           </span>
-
         </div>
-
-
 
         <Echart
           dataFetched={data ? data : "-"}
         />
-
       </main>
-
     </div>
   );
 }
