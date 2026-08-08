@@ -42,7 +42,7 @@ export default async function Lighthouse(url) {
 
     try {
         const result = await lighthouse(url, { port });
-
+        await browser.close();
         const improvements = result.lhr.categories.performance.auditRefs
             .map(ref => ({
                 ...result.lhr.audits[ref.id],
