@@ -1,4 +1,5 @@
-async function FetchData(url) {
+
+export default async function FetchData(url) {
   const analysisRequest = fetch(
     "https://webauditapi.onrender.com/ui/analyze",
     {
