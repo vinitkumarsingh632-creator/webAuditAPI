@@ -153,9 +153,13 @@ app.post(
   developerAuth,
   async (req, res) => {
     try {
+      console.log("Developer:", req.developer);
+
       const result = await createAPIKey(
         req.developer._id
       );
+
+      console.log("API key created:", result);
 
       return res.status(201).json({
         status: true,
@@ -164,7 +168,7 @@ app.post(
         id: result.id,
       });
     } catch (err) {
-      console.error(err);
+      console.error("CREATE API KEY ERROR:", err);
 
       return res.status(500).json({
         status: false,
