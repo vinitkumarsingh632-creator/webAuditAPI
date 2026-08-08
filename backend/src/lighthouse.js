@@ -1,10 +1,14 @@
-import lighthouse from "lighthouse";
-import puppeteer from "puppeteer";
 import { performance } from "node:perf_hooks";
 
 export default async function Lighthouse(url) {
     let response;
     let latency;
+
+    /*
+     * --------------------------------------------------
+     * 1. Check the target website
+     * --------------------------------------------------
+     */
 
     try {
         const start = performance.now();
@@ -12,6 +16,7 @@ export default async function Lighthouse(url) {
         response = await fetch(url);
 
         const end = performance.now();
+
         latency = end - start;
 
         if (!response.ok) {
@@ -20,123 +25,331 @@ export default async function Lighthouse(url) {
                 message: response.statusText
             };
         }
+
     } catch (err) {
-        console.log(err)
+        console.error("FETCH ERROR:", err);
+
         return {
             fetchError: true,
             message: "Invalid URL or website is unreachable."
         };
     }
 
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-            "--remote-debugging-port=0",
-            "--no-sandbox",
-            "--disable-setuid-sandbox"
-        ]
-    });
 
-    const wsEndpoint = browser.wsEndpoint();
-    const port = Number(new URL(wsEndpoint).port);
+    /*
+     * --------------------------------------------------
+     * 2. Run PageSpeed / Lighthouse
+     * --------------------------------------------------
+     */
 
     try {
-        const result = await lighthouse(url, { port });
-        await browser.close();
-        const improvements = result.lhr.categories.performance.auditRefs
-            .map(ref => ({
-                ...result.lhr.audits[ref.id],
-                weight: ref.weight
-            }))
-            .filter(audit =>
-                audit.score !== null &&
-                audit.score < 0.9
-            )
-            .sort((a, b) => a.score - b.score);
+        const apiKey = process.env.PAGESPEED_API_KEY;
+
+        if (!apiKey) {
+            return {
+                lighthouseError: true,
+                message: "PAGESPEED_API_KEY is not configured."
+            };
+        }
+
+
+        const params = new URLSearchParams();
+
+        params.set("url", url);
+
+        params.set("key", apiKey);
+
+        params.set("strategy", "desktop");
+
+        params.append("category", "performance");
+        params.append("category", "seo");
+        params.append("category", "accessibility");
+        params.append("category", "best-practices");
+
+
+        const pageSpeedResponse = await fetch(
+            `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${params.toString()}`
+        );
+
+
+        /*
+         * --------------------------------------------------
+         * 3. Check PageSpeed response
+         * --------------------------------------------------
+         */
+
+        if (!pageSpeedResponse.ok) {
+            const errorText =
+                await pageSpeedResponse.text();
+
+            console.error(
+                "PAGESPEED ERROR:",
+                errorText
+            );
+
+            return {
+                lighthouseError: true,
+                message:
+                    "PageSpeed API request failed."
+            };
+        }
+
+
+        const data =
+            await pageSpeedResponse.json();
+
+
+        /*
+         * --------------------------------------------------
+         * 4. Get Lighthouse result
+         * --------------------------------------------------
+         */
+
+        const result =
+            data.lighthouseResult;
+
+
+        if (!result) {
+            return {
+                lighthouseError: true,
+                message:
+                    "Lighthouse result was not returned."
+            };
+        }
+
+
+        /*
+         * --------------------------------------------------
+         * 5. Runtime error from Lighthouse
+         * --------------------------------------------------
+         */
+
+        if (result.runtimeError) {
+            return {
+                lighthouseError: true,
+                message:
+                    result.runtimeError.message ||
+                    "Lighthouse failed to analyze the website."
+            };
+        }
+
+
+        const audits = result.audits;
+
+
+        /*
+         * --------------------------------------------------
+         * 6. Find performance improvements
+         * --------------------------------------------------
+         */
+
+        const performanceCategory =
+            result.categories.performance;
+
+
+        const improvements =
+            performanceCategory.auditRefs
+                .map(ref => ({
+                    ...audits[ref.id],
+                    weight: ref.weight
+                }))
+                .filter(audit =>
+                    audit.score !== null &&
+                    audit.score !== undefined &&
+                    audit.score < 0.9
+                )
+                .sort(
+                    (a, b) =>
+                        a.score - b.score
+                );
+
 
         const badPractices = [];
 
+
         for (const i of improvements) {
-            if (!i.guidanceLevel) continue;
+
+            if (!i.title) {
+                continue;
+            }
+
 
             badPractices.push({
                 title: i.title,
-                description: i.description,
+
+                description:
+                    i.description ||
+                    i.explanation ||
+                    "",
+
                 score: i.score,
-                severity: i.guidanceLevel >= 3 ? "severe" : "medium"
+
+                severity:
+                    i.score < 0.5
+                        ? "severe"
+                        : "medium"
             });
         }
-        console.log(result.lhr.audits["resource-summary"]);
+
+
+        /*
+         * --------------------------------------------------
+         * 7. Return your existing object
+         * --------------------------------------------------
+         */
+
         return {
+
             URL: url,
+
             Timestamp: new Date(),
 
+
             Performance: {
-                Score: result.lhr.categories.performance.score
+                Score:
+                    result.categories
+                        .performance
+                        ?.score ?? null
             },
+
 
             SEO: {
-                Score: result.lhr.categories.seo.score
+                Score:
+                    result.categories
+                        .seo
+                        ?.score ?? null
             },
+
 
             Accessibility: {
-                Score: result.lhr.categories.accessibility.score
+                Score:
+                    result.categories
+                        .accessibility
+                        ?.score ?? null
             },
+
 
             Best_Practices: {
-                Score: result.lhr.categories["best-practices"].score
+                Score:
+                    result.categories[
+                        "best-practices"
+                    ]?.score ?? null
             },
+
 
             CLS: {
-                Score: result.lhr.audits["cumulative-layout-shift"].score,
+                Score:
+                    audits[
+                        "cumulative-layout-shift"
+                    ]?.score ?? null,
+
                 DisplayValue:
-                    result.lhr.audits["cumulative-layout-shift"].displayValue
+                    audits[
+                        "cumulative-layout-shift"
+                    ]?.displayValue ?? null
             },
+
 
             LCP: {
-                Score: result.lhr.audits["largest-contentful-paint"].score,
+                Score:
+                    audits[
+                        "largest-contentful-paint"
+                    ]?.score ?? null,
+
                 DisplayValue:
-                    result.lhr.audits["largest-contentful-paint"].displayValue
+                    audits[
+                        "largest-contentful-paint"
+                    ]?.displayValue ?? null
             },
+
 
             FCP: {
-                Score: result.lhr.audits["first-contentful-paint"].score,
+                Score:
+                    audits[
+                        "first-contentful-paint"
+                    ]?.score ?? null,
+
                 DisplayValue:
-                    result.lhr.audits["first-contentful-paint"].displayValue
+                    audits[
+                        "first-contentful-paint"
+                    ]?.displayValue ?? null
             },
+
 
             SpeedIndex: {
-                Score: result.lhr.audits["speed-index"].score,
+                Score:
+                    audits[
+                        "speed-index"
+                    ]?.score ?? null,
+
                 DisplayValue:
-                    result.lhr.audits["speed-index"].displayValue
+                    audits[
+                        "speed-index"
+                    ]?.displayValue ?? null
             },
 
-            StatusCode: response.status,
-            StatusText: response.statusText,
 
-            Latency: latency.toFixed(2),
+            StatusCode:
+                response.status,
 
-            Improvements: badPractices,
+            StatusText:
+                response.statusText,
+
+
+            Latency:
+                latency.toFixed(2),
+
+
+            Improvements:
+                badPractices,
+
 
             Resources:
-                result.lhr.audits["resource-summary"].details.items,
+                audits[
+                    "resource-summary"
+                ]?.details?.items ?? [],
+
 
             Headers: {
-                contentType: response.headers.get("content-type"),
-                cacheControl: response.headers.get("cache-control"),
-                contentEncoding: response.headers.get("content-encoding"),
-                contentLength: response.headers.get("content-length"),
-                server: response.headers.get("server")
+                contentType:
+                    response.headers.get(
+                        "content-type"
+                    ),
+
+                cacheControl:
+                    response.headers.get(
+                        "cache-control"
+                    ),
+
+                contentEncoding:
+                    response.headers.get(
+                        "content-encoding"
+                    ),
+
+                contentLength:
+                    response.headers.get(
+                        "content-length"
+                    ),
+
+                server:
+                    response.headers.get(
+                        "server"
+                    )
             }
         };
+
+
     } catch (err) {
-        console.error(err);
+
+        console.error(
+            "PAGESPEED/LIGHTHOUSE ERROR:",
+            err
+        );
 
         return {
             lighthouseError: true,
-            message: "Failed to analyze the website."
+            message:
+                "Failed to analyze the website."
         };
-    } finally {
-        await browser.close();
     }
 }
