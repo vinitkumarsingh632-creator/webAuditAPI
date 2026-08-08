@@ -26,12 +26,12 @@ const DeveloperSchema = new mongoose.Schema(
 
 const APIKeySchema = new mongoose.Schema({
   developerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Developer",
-    required: true,
-    unique: true,
-    index: true,
-  },
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Developer",
+  required: true,
+  unique: true,
+  index: true,
+},
 
   keyHash: {
     type: String,
